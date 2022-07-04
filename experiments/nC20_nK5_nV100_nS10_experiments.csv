@@ -1,0 +1,8 @@
+Rule,Utilitarian Ratio,Representation Ratio,Raw Representation Score,EJR Score,JR Score,PJR Score
+av,0.972,0.945,88.3,1.0,1.0,1.0
+cc,0.96,1.0,93.5,1.0,1.0,1.0
+seqcc,0.963,0.994,92.9,1.0,1.0,1.0
+rule-x,0.97,0.975,91.2,1.0,1.0,1.0
+minimaxav,0.936,0.863,80.6,1.0,1.0,1.0
+sav,0.972,0.945,88.3,1.0,1.0,1.0
+pav,0.971,0.982,91.8,1.0,1.0,1.0
