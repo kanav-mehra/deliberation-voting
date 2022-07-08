@@ -6,8 +6,8 @@ import math
 import numpy as np
 import time
 
-
 def get_reception_prob(group_size):
+	return 1
 	lamda = 0.5
 	p = lamda*math.exp(-lamda*group_size)
 
@@ -28,7 +28,7 @@ def simulate(group_div='random'):
 		agents.append(a)
 
 	#Create groups
-	groups = create_groups(agents,'random')
+	groups = create_groups(agents,group_div)
 	#print(groups)
 
 	#Deliberation
@@ -64,14 +64,17 @@ def simulate(group_div='random'):
 	init_var = np.var(init_opinions,axis=0)
 	#print(init_var,final_var)
 	
-	print(final_opinions.shape,init_opinions.shape)
+	#print(final_opinions.shape,init_opinions.shape)
 
 	#Voting
 
 	#Metrics
 
 	simul_time = time.time() - start
-	print(simul_time)
+	#print(simul_time)
+	return init_opinions, final_opinions
+
+	#generate_results(init_opinions)
 
 simulate()
 #print(get_reception_prob(2))

@@ -1,6 +1,8 @@
 from config import *
 import mallows_hamming as mh
+import mallows_kendall as mk
 import numpy as np
+import random
 
 def generate_uniform_utils(ranking):
 	s = list(np.random.uniform(0,1,size=num_alternatives))
@@ -20,7 +22,7 @@ def generate_harmonic_utils(ranking):
 
 def generate_opinions(demo):
 	seed = seed_0 if demo == 0 else seed_1
-	ranking = mh.sample(1,num_alternatives,phi=0.05,s0=seed)[0]
+	ranking = mk.sample(1,num_alternatives,phi=phi,s0=seed)[0]
 	#print(ranking)
 	utils = generate_uniform_utils(ranking)
 	return utils
