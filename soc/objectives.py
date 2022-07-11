@@ -29,6 +29,16 @@ def representation_score(candidate_committee, profile):
         rep_score += min(1, len(intersection(candidate_committee, voter)))
     return rep_score
 
+def satisfaction_score(candidate_committee, profile):
+    '''
+    Given an approval profile, calculates the satisfaction score for a winning committee
+    Satisfaction Score = Sum of satisfaction for each voter in the winning committee
+    '''
+    sat_score = 0
+    for voter in profile.profile_pref_topk:
+        sat_score += len(intersection(candidate_committee, voter))
+    return sat_score
+
 '''
 def nash_welfare_score(candidate_committee, profile):
     #Given an approval profile, calculates the nash welfare score for a winning committee

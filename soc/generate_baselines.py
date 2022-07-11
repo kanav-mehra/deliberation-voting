@@ -6,7 +6,7 @@ import csv
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
-from objectives import utilitarian_score, representation_score
+from objectives import utilitarian_score, representation_score, satisfaction_score
 from main import simulate
 from config import *
 
@@ -23,7 +23,8 @@ def generate_baseline_results(utilities, setup):
         file_name = str.format("nC{}_nW{}_nV{}_nS{}_{}_{}", num_alternatives, num_winners, num_agents, num_simulations, group_div, "final.csv")
 
     representation_ratio = {}
-    raw_representation_score = {}
+    voter_coverage = {}
+    voter_satisfaction = {}
     utilitarian_ratio = {}
     ejr_scores = {}
     jr_scores = {}
@@ -31,7 +32,8 @@ def generate_baseline_results(utilities, setup):
 
     for rule_id in rules:
         representation_ratio[rule_id] = 0
-        raw_representation_score[rule_id] = 0
+        voter_coverage[rule_id] = 0
+        voter_satisfaction[rule_id] = 0
         utilitarian_ratio[rule_id] = 0
         ejr_scores[rule_id] = 0
         jr_scores[rule_id] = 0
@@ -50,7 +52,8 @@ def generate_baseline_results(utilities, setup):
             representation_ratio[rule_id] += rep_score/optimal_representation
             
             utilitarian_ratio[rule_id] += utilitarian_score(list(result), profile)/profile.optimal_welfare
-            raw_representation_score[rule_id] += rep_score
+            voter_coverage[rule_id] += rep_score
+            voter_satisfaction[rule_id] += satisfaction_score(result, profile)/num_agents
             
             ejr_scores[rule_id] += int(properties.check_EJR(profile.profile_abc, result))
             jr_scores[rule_id] += int(properties.check_JR(profile.profile_abc, result))
@@ -59,7 +62,8 @@ def generate_baseline_results(utilities, setup):
     # divide by num_simulations to get the average
     for rule_id in representation_ratio:
         representation_ratio[rule_id] = np.round(representation_ratio[rule_id]/num_simulations, 3)
-        raw_representation_score[rule_id] = np.round(raw_representation_score[rule_id]/num_simulations, 3)
+        voter_coverage[rule_id] = np.round(voter_coverage[rule_id]/num_simulations, 3)
+        voter_satisfaction[rule_id] = np.round(voter_satisfaction[rule_id]/num_simulations, 3)
         utilitarian_ratio[rule_id] = np.round(utilitarian_ratio[rule_id]/num_simulations, 3)
         ejr_scores[rule_id] = np.round(ejr_scores[rule_id]/num_simulations, 3)
         jr_scores[rule_id] = np.round(jr_scores[rule_id]/num_simulations, 3)
@@ -67,9 +71,9 @@ def generate_baseline_results(utilities, setup):
 
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Raw Representation Score", "EJR Score", "JR Score", "PJR Score"])
+        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Voter Coverage", "Voter Satisfaction", "EJR Score", "JR Score", "PJR Score"])
         for rule_id in representation_ratio:
-            writer.writerow([rule_id, utilitarian_ratio[rule_id], representation_ratio[rule_id], raw_representation_score[rule_id], ejr_scores[rule_id], jr_scores[rule_id], pjr_scores[rule_id]])
+            writer.writerow([rule_id, utilitarian_ratio[rule_id], representation_ratio[rule_id], voter_coverage[rule_id], voter_satisfaction[rule_id], ejr_scores[rule_id], jr_scores[rule_id], pjr_scores[rule_id]])
 
 def check_profile_eligibility(utilities):
     profile = ApprovalProfile(num_agents, num_alternatives, num_winners, num_approval, utilities)
@@ -95,6 +99,7 @@ def generate_results():
             init_opinions.append(init_utils)
             final_opinions.append(final_utils)
             simulation_count+=1
+            print(simulation_count)
         else:
             continue
     
