@@ -20,7 +20,7 @@ def generate_harmonic_utils(ranking):
 		utils[int(i)] = 1/(idx+1)
 	return utils
 
-def generate_opinions(demo):
+def generate_opinions(demo,seed_0,seed_1):
 	seed = seed_0 if demo == 0 else seed_1
 	ranking = mk.sample(1,num_alternatives,phi=phi,s0=seed)[0]
 	#print(ranking)
@@ -28,14 +28,14 @@ def generate_opinions(demo):
 	return utils
 
 class Agent:
-	def __init__(self,id,demo,ingroup_bias=ingroup_bias,outgroup_bias=outgroup_bias,delta=delta):
+	def __init__(self,id,demo,seed_0,seed_1,init_ops=None):
 		self.id = id
 		self.debug = False if id==0 else False
 		self.demo = demo
 		self.ingroup_bias = ingroup_bias
 		self.outgroup_bias = outgroup_bias
 		self.delta = delta
-		self.init_opinions = generate_opinions(demo)
+		self.init_opinions = generate_opinions(demo,seed_0,seed_1) if init_ops is None else init_ops
 		self.opinions = self.init_opinions.copy()
 		self.ops_heard = 0
 		self.ops_listened = 0
@@ -54,6 +54,7 @@ class Agent:
 				if self.debug:
 					print(i,self.opinions[i],src[i],alpha)
 				self.opinions[i] += alpha*(src[i] - self.opinions[i])
+				self.opinions[i] = max(0,min(self.opinions[i],1))
 				if self.debug:
 					print(self.opinions[i])
 				self.ops_updated[i] += 1

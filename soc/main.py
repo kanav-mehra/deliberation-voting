@@ -8,9 +8,12 @@ import time
 
 def get_reception_prob(group_size):
 	return 1
+
+	#exponential
 	lamda = 0.5
 	p = lamda*math.exp(-lamda*group_size)
 
+	#linear decay
 	u = 20
 	if group_size >= u:
 		p = 0
@@ -18,13 +21,14 @@ def get_reception_prob(group_size):
 		p = (u - group_size)/(u-1)
 	return p
 
-def simulate(group_div='random'):
+def simulate(group_div,seed_0,seed_1,init_opinions):
 	start = time.time()
 	#Agent creation
 	agents = []
 	for i in range(num_agents):
-		demo = 1 if i < 0.8*num_agents else 0
-		a = Agent(i,demo,ingroup_bias,outgroup_bias,delta)
+		demo = 1 if i < majority*num_agents else 0
+		init_ops = None if init_opinions is None else init_opinions[i]
+		a = Agent(i,demo,seed_0,seed_1,init_ops)
 		agents.append(a)
 
 	#Create groups
@@ -47,34 +51,34 @@ def simulate(group_div='random'):
 	init_opinions = []
 
 	for i in agents:
-		#print(i.opinions)
-		#print(i.ops_heard)
-		#print(i.ops_listened)
-		#print(i.ops_updated)
-		if i.debug:
-			print(i.init_opinions,i.opinions)
 		final_opinions.append(i.opinions)
 		init_opinions.append(i.init_opinions)
 
 	final_opinions = np.array(final_opinions)
 	init_opinions = np.array(init_opinions)
 	
-	#print(final_opinions - init_opinions)
-	final_var = np.var(final_opinions,axis=0)
-	init_var = np.var(init_opinions,axis=0)
-	#print(init_var,final_var)
-	
-	#print(final_opinions.shape,init_opinions.shape)
-
-	#Voting
-
-	#Metrics
-
 	simul_time = time.time() - start
 	#print(simul_time)
 	return init_opinions, final_opinions
 
-	#generate_results(init_opinions)
 
-simulate()
+
+def simulate_for_all_group_divs():
+	seed_0 = list(range(num_alternatives))
+	random.shuffle(seed_0)
+
+	seed_1 = list(range(num_alternatives))
+	random.shuffle(seed_1)
+
+	init_opinions = None
+	ret = {}
+	for gd in group_divisions:
+		init_opinions, final_opinions = simulate(gd,seed_0,seed_1,init_opinions)
+		print(init_opinions)
+		ret['initial_opinions'] = init_opinions
+		ret['final_'+gd] = final_opinions
+	print(ret)
+	return ret
+
+simulate_for_all_group_divs()
 #print(get_reception_prob(2))
