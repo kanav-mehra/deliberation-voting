@@ -3,7 +3,7 @@ majority = 0.8
 num_alternatives = 50
 num_winners = 5
 num_approval = 5
-num_simulations = 100
+num_simulations = 2
 group_size = 10
 
 phi = 0.2
