@@ -7,7 +7,7 @@ from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
 from objectives import utilitarian_score, representation_score, satisfaction_score
-from main import simulate
+from main import simulate_for_all_group_divs
 from config import *
 
 def generate_baseline_results(utilities, setup):
@@ -17,10 +17,7 @@ def generate_baseline_results(utilities, setup):
     '''
     output.set_verbosity(WARNING)
 
-    if setup=="initial":
-        file_name = str.format("nC{}_nW{}_nV{}_nS{}_{}_{}", num_alternatives, num_winners, num_agents, num_simulations, group_div, "init.csv")
-    else:
-        file_name = str.format("nC{}_nW{}_nV{}_nS{}_{}_{}", num_alternatives, num_winners, num_agents, num_simulations, group_div, "final.csv")
+    file_name = str.format("results/nC{}_nW{}_nV{}_nS{}_{}", num_alternatives, num_winners, num_agents, num_simulations, setup+".csv")
 
     representation_ratio = {}
     voter_coverage = {}
@@ -71,9 +68,9 @@ def generate_baseline_results(utilities, setup):
 
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Voter Coverage", "Voter Satisfaction", "EJR Score", "JR Score", "PJR Score"])
+        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Voter Coverage", "Voter Satisfaction", "EJR Score", "PJR Score", "JR Score"])
         for rule_id in representation_ratio:
-            writer.writerow([rule_id, utilitarian_ratio[rule_id], representation_ratio[rule_id], voter_coverage[rule_id], voter_satisfaction[rule_id], ejr_scores[rule_id], jr_scores[rule_id], pjr_scores[rule_id]])
+            writer.writerow([rule_id, utilitarian_ratio[rule_id], representation_ratio[rule_id], voter_coverage[rule_id], voter_satisfaction[rule_id], ejr_scores[rule_id], pjr_scores[rule_id], jr_scores[rule_id]])
 
 def check_profile_eligibility(utilities):
     profile = ApprovalProfile(num_agents, num_alternatives, num_winners, num_approval, utilities)
@@ -90,16 +87,19 @@ def check_profile_eligibility(utilities):
 def generate_results():
 
     init_opinions = []
-    final_opinions = []
+    final_opinions = {}
+    for group_div in group_divisions:
+        final_opinions[group_div] = []
     simulation_count = 0
 
     while simulation_count<num_simulations:
-        init_utils, final_utils = simulate(group_div)
-        if check_profile_eligibility(init_utils)==True:
-            init_opinions.append(init_utils)
-            final_opinions.append(final_utils)
+        opinions = simulate_for_all_group_divs()
+        if check_profile_eligibility(opinions['initial_opinions'])==True:
+            init_opinions.append(opinions['initial_opinions'])
+            for group_div in group_divisions:
+                final_opinions[group_div].append(opinions['final_'+group_div])
             simulation_count+=1
-            print(simulation_count)
+            #print(simulation_count)
         else:
             continue
     
@@ -107,6 +107,8 @@ def generate_results():
     generate_baseline_results(init_opinions, "initial")
 
     print("Generating baseline results for final opinions...")
-    generate_baseline_results(final_opinions, "final")
+    for group_div in group_divisions:
+        print("Setup:", group_div)
+        generate_baseline_results(final_opinions[group_div], "final_"+group_div)
 
 generate_results()

@@ -74,10 +74,10 @@ def simulate_for_all_group_divs():
 	ret = {}
 	for gd in group_divisions:
 		init_opinions, final_opinions = simulate(gd,seed_0,seed_1,init_opinions)
-		print(init_opinions)
+		#print(init_opinions)
 		ret['initial_opinions'] = init_opinions
 		ret['final_'+gd] = final_opinions
-	print(ret)
+	#print(ret)
 	return ret
 
 simulate_for_all_group_divs()
