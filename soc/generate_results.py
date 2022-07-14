@@ -8,17 +8,30 @@ from tqdm import tqdm
 from approval_profile import ApprovalProfile
 from objectives import utilitarian_score, representation_score, satisfaction_score
 from main import simulate_for_all_group_divs
+import matplotlib.pyplot as plt
 from config import *
 
-def compute_mean(objectives):
+def compute_mean(objectives_):
     '''
     Computes mean of all objectives.
     '''
-    print(objectives)
-    for obj in objectives:
+    #print(objectives)
+    for obj in objectives_:
         for rule_id in rules:
-            objectives[obj][rule_id] = np.round(np.mean(objectives[obj][rule_id]), 3)
-    return objectives
+            objectives_[obj][rule_id] = np.round(np.mean(objectives_[obj][rule_id]), 3)
+    return objectives_
+
+def save_boxplots(objectives_, setup):
+    '''
+    Saves boxplots for all objectives.
+    '''
+    for obj in objectives_:
+        plt.figure(figsize=(20,10))
+        plt.boxplot(objectives_[obj].values())
+        plt.xticks(np.arange(1, len(rules)+1), rules)
+        plt.ylabel(obj)
+        plt.xlabel('Rule')
+        plt.savefig(str.format("results/boxplots/{}_{}.png", setup, obj))
 
 def compute_objectives(utilities, setup):
     '''
@@ -54,6 +67,7 @@ def compute_objectives(utilities, setup):
             objectives['pjr_scores'][rule_id].append(int(properties.check_PJR(profile.profile_abc, result)))
             objectives['ejr_scores'][rule_id].append(int(properties.check_EJR(profile.profile_abc, result)))
     
+    save_boxplots(objectives, setup)
     objectives_means = compute_mean(objectives)
 
     with open(file_name, 'w') as csvfile:
@@ -71,7 +85,7 @@ def check_profile_eligibility(utilities):
     optimal_representation = representation_score(cc_committee, profile)
     av_representation = representation_score(av_committee, profile)/optimal_representation
     cc_utility = utilitarian_score(list(cc_committee), profile)/profile.optimal_welfare
-    if cc_utility>0.9 or av_representation>0.9:
+    if cc_utility>eligibility_threshold or av_representation>eligibility_threshold:
         return False
     else:
         return True

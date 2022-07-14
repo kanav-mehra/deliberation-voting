@@ -2,9 +2,10 @@ num_agents = 100
 majority = 0.8
 num_alternatives = 50
 num_winners = 5
-num_approval = 5
-num_simulations = 2
+num_approval = 10
+num_simulations = 100
 group_size = 10
+eligibility_threshold = 0.9
 
 phi = 0.2
 
