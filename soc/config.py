@@ -2,10 +2,15 @@ num_agents = 100
 majority = 0.8
 num_alternatives = 50
 num_winners = 5
-num_approval = 10
+
+approval_low = 3
+approval_high = 10
+#approval_choices = list(range(approval_low, approval_high+1))
+approval_choices = [9,10,11]
+
 num_simulations = 100
 group_size = 10
-eligibility_threshold = 0.9
+profile_eligibility_threshold = 0.9
 
 phi = 0.2
 
