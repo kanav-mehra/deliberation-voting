@@ -2,10 +2,11 @@ import random
 import numpy as np
 from copy import deepcopy
 import math
+import time
 
 GENERATIONS = 30
 RANDOM_GENERATIONS = 2
-MAX_EXPLORE = 100
+MAX_EXPLORE = 5
 
 def social_golfer(groups, group_size, num_rounds):
     """
@@ -46,7 +47,7 @@ def social_golfer(groups, group_size, num_rounds):
             scored_groups = zip(option['groups'], option['group_scores'])
             sorted_scored_groups = sorted(scored_groups, key=lambda x: x[1], reverse=True)
             sorted_groups = [x[0] for x in sorted_scored_groups]
-            candidates.append(option)
+            #candidates.append(option)
             
             for i in range(group_size):
                 for j in range(group_size, num_golfers):
@@ -91,8 +92,7 @@ def social_golfer(groups, group_size, num_rounds):
         while(generation < GENERATIONS and best_option['score']>0):
             candidates = generate_candidates(options, weights)
             # sort candidates by score
-            candidates = sorted(candidates, key=lambda x: x['score'])
-            best_option = candidates[0]
+            best_option = min(candidates, key=lambda x: x['score'])
             # fliter candidates where score is less than or equal to best_option
             options = [x for x in candidates if x['score'] <= best_option['score']]
             random.shuffle(options)
@@ -107,5 +107,8 @@ def social_golfer(groups, group_size, num_rounds):
         update_weights(best_option['groups'], weights)
     
     return rounds, round_scores
-        
-#social_golfer(2, 3, 4)
+
+#time_start = time.time()
+social_golfer(10, 10, 5)
+#time_end = time.time()
+#print("Time: {}".format(time_end-time_start))

@@ -3,6 +3,7 @@ from abcvoting.output import output, INFO, DETAILS, WARNING
 from svvamp import GeneratorProfileCubicUniform, Profile
 import numpy as np
 import csv
+import random
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
@@ -32,10 +33,11 @@ def save_boxplots(objectives_, setup):
         plt.ylabel(obj)
         plt.xlabel('Rule')
         plt.savefig(str.format("results/boxplots/{}_{}.png", setup, obj))
+        plt.close()
 
-def compute_objectives(utilities, setup):
+def compute_objectives(approval_sizes, utilities, setup):
     '''
-    Computes objectives for a given set of voting rules given the setup and profile utilities.
+    Computes objectives for a given set of voting rules given the setup, profile utilities, and approvals.
     Opinions and utilities are used interchangebly.
     '''
     output.set_verbosity(WARNING)
@@ -48,7 +50,7 @@ def compute_objectives(utilities, setup):
             objectives[obj][rule_id] = []
     
     for n in tqdm(range(num_simulations)):
-        profile = ApprovalProfile(num_agents, num_alternatives, num_winners, num_approval, utilities[n])
+        profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approval_sizes[n], utilities[n])
         cc_committee = abcrules.compute("cc", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         optimal_representation = representation_score(cc_committee, profile) # cc_committee has optimal representation
@@ -78,20 +80,20 @@ def compute_objectives(utilities, setup):
             objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], objectives_means['ejr_scores'][rule_id], 
             objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id]])
 
-def check_profile_eligibility(utilities):
-    profile = ApprovalProfile(num_agents, num_alternatives, num_winners, num_approval, utilities)
+def check_profile_eligibility(utilities, approvals):
+    profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approvals, utilities)
     cc_committee = abcrules.compute("cc", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
     av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
     optimal_representation = representation_score(cc_committee, profile)
     av_representation = representation_score(av_committee, profile)/optimal_representation
     cc_utility = utilitarian_score(list(cc_committee), profile)/profile.optimal_welfare
-    if cc_utility>eligibility_threshold or av_representation>eligibility_threshold:
+    if cc_utility>profile_eligibility_threshold or av_representation>profile_eligibility_threshold:
         return False
     else:
         return True
 
 def generate_results():
-
+    approval_sizes = []
     init_opinions = []
     final_opinions = {}
     for group_div in group_divisions:
@@ -100,20 +102,24 @@ def generate_results():
 
     while simulation_count<num_simulations:
         opinions = simulate_for_all_group_divs()
-        if check_profile_eligibility(opinions['initial_opinions'])==True:
+        approval = random.choices(approval_choices, k=num_agents)
+        #approval = np.random.normal(10, 2, num_agents)
+        #approval = [int(round(x)) for x in approval]
+        if check_profile_eligibility(opinions['initial_opinions'], approval)==True:
+            approval_sizes.append(approval)
             init_opinions.append(opinions['initial_opinions'])
             for group_div in group_divisions:
                 final_opinions[group_div].append(opinions['final_'+group_div])
             simulation_count+=1
         else:
             continue
-    
-    print("Generating baseline results for initial opinions...")
-    compute_objectives(init_opinions, "initial")
+    print('Average approval ballot size =',np.mean(approval_sizes))
+    print("Generating results for initial opinions...")
+    compute_objectives(approval_sizes, init_opinions, "initial")
 
-    print("Generating baseline results for final opinions...")
+    print("Generating results for final opinions...")
     for group_div in group_divisions:
         print("Setup:", group_div)
-        compute_objectives(final_opinions[group_div], "final_"+group_div)
+        compute_objectives(approval_sizes, final_opinions[group_div], "final_"+group_div)
 
 generate_results()
