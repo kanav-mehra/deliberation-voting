@@ -6,7 +6,7 @@ num_winners = 5
 approval_low = 3
 approval_high = 10
 #approval_choices = list(range(approval_low, approval_high+1))
-approval_choices = [9,10,11]
+approval_choices = [10]
 
 num_simulations = 100
 group_size = 10
