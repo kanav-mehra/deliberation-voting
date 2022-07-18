@@ -102,13 +102,13 @@ def social_golfer(groups, group_size, num_rounds):
         rounds.append(best_option['groups'])
         round_scores.append(best_option['score'])
 
-        print("Round {}: {}\nConflict Score: {}\n".format(i, best_option['groups'], best_option['score']))
+        #print("Round {}: {}\nConflict Score: {}\n".format(i, best_option['groups'], best_option['score']))
 
         update_weights(best_option['groups'], weights)
     
     return rounds, round_scores
 
 #time_start = time.time()
-social_golfer(10, 10, 5)
+#social_golfer(10, 10, 5)
 #time_end = time.time()
 #print("Time: {}".format(time_end-time_start))

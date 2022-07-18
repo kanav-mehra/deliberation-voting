@@ -102,9 +102,10 @@ def generate_results():
 
     while simulation_count<num_simulations:
         opinions = simulate_for_all_group_divs()
-        approval = random.choices(approval_choices, k=num_agents)
+        #approval = random.choices(approval_choices, k=num_agents)
         #approval = np.random.normal(10, 2, num_agents)
         #approval = [int(round(x)) for x in approval]
+        approval = opinions['approval']
         if check_profile_eligibility(opinions['initial_opinions'], approval)==True:
             approval_sizes.append(approval)
             init_opinions.append(opinions['initial_opinions'])

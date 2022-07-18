@@ -32,9 +32,14 @@ class Agent:
 		self.id = id
 		self.debug = False if id==0 else False
 		self.demo = demo
-		self.ingroup_bias = ingroup_bias
-		self.outgroup_bias = outgroup_bias
-		self.delta = delta
+		if const_bc_flag:
+			self.ingroup_bias = ingroup_bias
+			self.outgroup_bias = outgroup_bias
+			self.delta = delta
+		else:
+			self.ingroup_bias = random.uniform(0,1)
+			self.outgroup_bias = random.uniform(0,self.ingroup_bias)
+			self.delta = random.uniform(0,1)
 		self.init_opinions = generate_opinions(demo,seed_0,seed_1) if init_ops is None else init_ops
 		self.opinions = self.init_opinions.copy()
 		self.ops_heard = 0
