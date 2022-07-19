@@ -98,9 +98,8 @@ def generate_results():
     final_opinions = {}
     for group_div in group_divisions:
         final_opinions[group_div] = []
-    simulation_count = 0
 
-    while simulation_count<num_simulations:
+    for i in tqdm(range(num_simulations)):
         opinions = simulate_for_all_group_divs()
         #approval = random.choices(approval_choices, k=num_agents)
         #approval = np.random.normal(10, 2, num_agents)
@@ -110,7 +109,6 @@ def generate_results():
         init_opinions.append(opinions['initial_opinions'])
         for group_div in group_divisions:
             final_opinions[group_div].append(opinions['final_'+group_div])
-        simulation_count+=1
 
     print('Average approval ballot size =',np.mean(approval_sizes))
     print("Generating results for initial opinions...")

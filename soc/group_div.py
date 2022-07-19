@@ -1,7 +1,7 @@
 from config import *
 from golfer import social_golfer
 import random
-
+import numpy as np
 
 def create_groups(agents, group_div='random'):
 	if group_div == 'homo_demo':
