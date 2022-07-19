@@ -32,9 +32,16 @@ def create_groups(agents, group_div='random'):
 				i.append(x)
 		groups = [groups]
 	elif group_div == 'iterative_golfer':
+		'''
 		num_groups = num_agents//group_size
 		groups, _ = social_golfer(num_groups,group_size,num_iterations)
 		#print(groups)
+		'''
+
+		with open('golfer_dump.npy', 'rb') as f:
+			res = np.load(f)
+			idx = np.random.choice(len(res))
+			groups = res[idx]
 		assert len(groups) == num_iterations
 		assert len(groups[0]) == num_groups
 	elif group_div == 'iterative_random':
