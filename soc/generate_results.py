@@ -106,14 +106,12 @@ def generate_results():
         #approval = np.random.normal(10, 2, num_agents)
         #approval = [int(round(x)) for x in approval]
         approval = opinions['approval']
-        if check_profile_eligibility(opinions['initial_opinions'], approval)==True:
-            approval_sizes.append(approval)
-            init_opinions.append(opinions['initial_opinions'])
-            for group_div in group_divisions:
-                final_opinions[group_div].append(opinions['final_'+group_div])
-            simulation_count+=1
-        else:
-            continue
+        approval_sizes.append(approval)
+        init_opinions.append(opinions['initial_opinions'])
+        for group_div in group_divisions:
+            final_opinions[group_div].append(opinions['final_'+group_div])
+        simulation_count+=1
+
     print('Average approval ballot size =',np.mean(approval_sizes))
     print("Generating results for initial opinions...")
     compute_objectives(approval_sizes, init_opinions, "initial")

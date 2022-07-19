@@ -44,7 +44,7 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 
 	#Check_profile_eligibility here
 	if not check_profile_eligibility(init_utilities,approval):
-		print('Profile check failed...')
+		#print('Profile check failed...')
 		return None, None
 
 

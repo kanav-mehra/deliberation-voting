@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from config import *
 
-gd = ['initial', 'homo_demo', 'random', 'hetero_demo']
+gd = ['initial', 'homo_demo', 'random', 'hetero_demo', 'large_group', 'iterative_random', 'iterative_golfer']
 metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Voter Satisfaction', 'EJR Score']
 
 for metric in metrics:
@@ -25,8 +25,8 @@ for metric in metrics:
         else:
             file_name = str.format("results/nC{}_nW{}_nV{}_nS{}_{}", num_alternatives, num_winners, num_agents, num_simulations, 'final_'+file+".csv")
         df = pd.read_csv(file_name)
-        offset = width*(i-2)/4
-        ax.bar(xticks+offset, list(df[metric]), width=width/4, label=file)
+        offset = width*(i-2)/len(gd)
+        ax.bar(xticks+offset, list(df[metric]), width=width/len(gd), label=file)
 
     ax.legend(loc='upper right')
     ax.set_title(metric+' across group splits')

@@ -12,7 +12,7 @@ build/
 develop-eggs/
 dist/
 .DS_Store
-Soc/results/boxplots
+Soc/results*
 downloads/
 eggs/
 .eggs/
