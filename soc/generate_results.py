@@ -9,6 +9,7 @@ from tqdm import tqdm
 from approval_profile import ApprovalProfile
 from objectives import utilitarian_score, representation_score, satisfaction_score
 from main import simulate_for_all_group_divs
+from significance import test_significance
 import matplotlib.pyplot as plt
 from config import *
 
@@ -16,11 +17,16 @@ def compute_mean(objectives_):
     '''
     Computes mean of all objectives.
     '''
-    #print(objectives)
+    # initialize objectives
+    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'voter_coverage': {}, 'voter_satisfaction': {}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
+    for obj in objectives_means:
+        for rule_id in rules:
+            objectives_means[obj][rule_id] = []
+    
     for obj in objectives_:
         for rule_id in rules:
-            objectives_[obj][rule_id] = np.round(np.mean(objectives_[obj][rule_id]), 3)
-    return objectives_
+            objectives_means[obj][rule_id] = np.round(np.mean(objectives_[obj][rule_id]), 3)
+    return objectives_means
 
 def save_boxplots(objectives_, setup):
     '''
@@ -68,7 +74,7 @@ def compute_objectives(approval_sizes, utilities, setup):
             objectives['jr_scores'][rule_id].append(int(properties.check_JR(profile.profile_abc, result)))
             objectives['pjr_scores'][rule_id].append(int(properties.check_PJR(profile.profile_abc, result)))
             objectives['ejr_scores'][rule_id].append(int(properties.check_EJR(profile.profile_abc, result)))
-    
+
     save_boxplots(objectives, setup)
     objectives_means = compute_mean(objectives)
 
@@ -79,6 +85,8 @@ def compute_objectives(approval_sizes, utilities, setup):
             writer.writerow([rule_id, objectives_means['utilitarian_ratio'][rule_id], objectives_means['representation_ratio'][rule_id], 
             objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], objectives_means['ejr_scores'][rule_id], 
             objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id]])
+    
+    return objectives
 
 def check_profile_eligibility(utilities, approvals):
     profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approvals, utilities)
@@ -93,12 +101,14 @@ def check_profile_eligibility(utilities, approvals):
         return True
 
 def generate_results():
+    objectives_results = {}
     approval_sizes = []
     init_opinions = []
     final_opinions = {}
     for group_div in group_divisions:
         final_opinions[group_div] = []
 
+    print("\nGenerating profiles...")
     for i in tqdm(range(num_simulations)):
         opinions = simulate_for_all_group_divs()
         #approval = random.choices(approval_choices, k=num_agents)
@@ -110,13 +120,15 @@ def generate_results():
         for group_div in group_divisions:
             final_opinions[group_div].append(opinions['final_'+group_div])
 
-    print('Average approval ballot size =',np.mean(approval_sizes))
-    print("Generating results for initial opinions...")
-    compute_objectives(approval_sizes, init_opinions, "initial")
+    print('\nAverage approval ballot size =',np.mean(approval_sizes))
+    print("\nGenerating results for initial opinions...")
+    objectives_results['initial'] = compute_objectives(approval_sizes, init_opinions, "initial")
 
-    print("Generating results for final opinions...")
+    print("\nGenerating results for final opinions...")
     for group_div in group_divisions:
-        print("Setup:", group_div)
-        compute_objectives(approval_sizes, final_opinions[group_div], "final_"+group_div)
+        print("\nSetup:", group_div)
+        objectives_results[group_div] = compute_objectives(approval_sizes, final_opinions[group_div], "final_"+group_div)
+    
+    test_significance(objectives_results)
 
 generate_results()
