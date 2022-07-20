@@ -7,6 +7,54 @@ import numpy as np
 import time
 from check_profile import check_profile_eligibility
 
+'''
+def gen_rankings_from_utils_np(utils):
+	utils=np.array(utils)
+	print(utils.shape)
+	ranking = np.flip(np.argpartition(utils,utils.shape[1]-1),1)
+	return ranking
+'''
+
+def gen_rankings_from_utils(utils):
+	utils=list(utils)
+	rankings = []
+	u = utils.copy()
+	utils.sort(reverse=True)
+	for i in utils:
+		rankings.append(u.index(i))
+	return rankings
+
+def classify_alternatives(init_opinions, approval):
+	majority_ctr = [0 for i in range(num_alternatives)]
+	minority_ctr = [0 for i in range(num_alternatives)]
+
+	for i in range(num_agents):
+		ranking = gen_rankings_from_utils(init_opinions[i])
+		if i < majority*num_agents:
+			for alts in ranking[:approval[i]]:
+				majority_ctr[alts] += 1
+		else:
+			for alts in ranking[:approval[i]]:
+				minority_ctr[alts] += 1
+	majority_projects = []
+	minority_projects = []
+	for i in range(num_alternatives):
+		if majority_ctr[i]/majority >= minority_ctr[i]/(1-majority):
+			majority_projects.append(i)
+		else:
+			minority_projects.append(i)
+	
+	'''
+	print(majority_ctr)
+	print(minority_ctr)
+	for i in zip(range(num_alternatives),majority_ctr,minority_ctr):
+		print(i)
+	print(majority_projects)
+	print(minority_projects)
+	'''
+
+	return majority_projects,minority_projects
+
 def get_reception_prob(group_size):
 	return 1
 
@@ -102,6 +150,8 @@ def simulate_for_all_group_divs():
 		ret['final_'+gd] = final_opinions
 		#print(init_opinions,final_opinions)
 	#print(ret)
+	#print(seed_1,seed_0)
+	ret['majority_projects'],ret['minority_projects'] = classify_alternatives(init_opinions,approval)
 	return ret
 
 #r = simulate_for_all_group_divs()
