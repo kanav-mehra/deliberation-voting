@@ -8,13 +8,13 @@ approval_high = 10
 #approval_choices = list(range(approval_low, approval_high+1))
 approval_choices = [10]
 
-num_simulations = 10
+num_simulations = 100
 group_size = 10
 profile_eligibility_threshold = 0.9
 
 phi = 0.2
 
-const_bc_flag = False
+const_bc_flag = True
 ingroup_bias = 0.2
 outgroup_bias = 0.1
 delta = 0.4

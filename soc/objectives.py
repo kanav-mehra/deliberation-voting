@@ -39,6 +39,15 @@ def satisfaction_score(candidate_committee, profile):
         sat_score += len(intersection(candidate_committee, voter))
     return sat_score
 
+def project_representation_score(candidate_committee, minority_projects, majority_projects):
+    '''
+    Given a candidate committee, calculates the projects represented for majority/minority based
+    on their initial approvals.
+    '''
+    min_project_score = len(intersection(candidate_committee, minority_projects))
+    maj_project_score = len(intersection(candidate_committee, majority_projects))
+    return min_project_score, maj_project_score
+
 '''
 def nash_welfare_score(candidate_committee, profile):
     #Given an approval profile, calculates the nash welfare score for a winning committee
