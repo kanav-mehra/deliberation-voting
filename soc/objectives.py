@@ -4,6 +4,7 @@ from svvamp import GeneratorProfileCubicUniform, Profile
 import numpy as np
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
+from config import *
 from approval_profile import ApprovalProfile
 
 def intersection(a, b):
@@ -15,7 +16,7 @@ def utilitarian_score(candidate_committee, profile):
     Utility Score = Sum of utilities for each voter over candidates in the winning committee
     '''
     utility_score = 0
-    for idx in range(len(profile.profile_pref_topk)):
+    for idx in range(num_agents):
         utility_score += profile.profile.preferences_ut[idx, candidate_committee].sum()
     return utility_score
 

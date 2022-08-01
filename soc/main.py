@@ -137,9 +137,10 @@ def simulate_for_all_group_divs():
 	random.shuffle(seed_1)
 
 	init_opinions = None
-	approval = random.choices(approval_choices, k=num_agents)
+	#approval = random.choices(approval_choices, k=num_agents)
+	approval = np.random.normal(approval_mean, approval_std, num_agents)
+	approval = [int(round(x)) for x in approval]
 	ret = {}
-	ret['approval'] = approval
 	#print(approval)
 	for gd in group_divisions:
 		init_opinions, final_opinions = simulate(gd,seed_0,seed_1,init_opinions,approval)
@@ -152,6 +153,7 @@ def simulate_for_all_group_divs():
 	#print(ret)
 	#print(seed_1,seed_0)
 	ret['majority_projects'],ret['minority_projects'] = classify_alternatives(init_opinions,approval)
+	ret['approval'] = approval
 	return ret
 
 #r = simulate_for_all_group_divs()

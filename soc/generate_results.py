@@ -64,7 +64,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
         cc_committee = abcrules.compute("cc", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         optimal_representation = representation_score(cc_committee, profile) # cc_committee has optimal representation
-        
+
         for rule_id in rules:
             result = abcrules.compute(rule_id, profile.profile_abc, committeesize=num_winners, resolute=True)[0]
             
@@ -123,9 +123,6 @@ def generate_results():
     print("\nGenerating profiles...")
     for i in tqdm(range(num_simulations)):
         opinions = simulate_for_all_group_divs()
-        #approval = random.choices(approval_choices, k=num_agents)
-        #approval = np.random.normal(10, 2, num_agents)
-        #approval = [int(round(x)) for x in approval]
         approval = opinions['approval']
         approval_sizes.append(approval)
         minority_projects.append(opinions['minority_projects'])
