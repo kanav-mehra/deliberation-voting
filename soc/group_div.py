@@ -53,7 +53,7 @@ def create_groups(agents, group_div='random'):
 			groups.append(g)
 		assert len(groups) == num_iterations
 		assert len(groups[0]) == num_agents//group_size
-	elif group_div == 'large_group':
+	elif group_div == 'large_group' or group_div == 'large_group_wrp':
 		l = list(range(num_agents))
 		random.shuffle(l)
 		groups = [[l]]

@@ -56,18 +56,15 @@ def classify_alternatives(init_opinions, approval):
 	return majority_projects,minority_projects
 
 def get_reception_prob(group_size):
-	return 1
-
-	#exponential
-	lamda = 0.5
-	p = lamda*math.exp(-lamda*group_size)
-
-	#linear decay
-	u = 20
+	#linear decay between lower (l) and upper (u); constant otherwise
+	u = 200
+	l = 10
 	if group_size >= u:
 		p = 0
+	elif group_size > l:
+		p = (u - group_size)/(u - l)
 	else:
-		p = (u - group_size)/(u-1)
+		p = 1
 	return p
 
 def simulate(group_div,seed_0,seed_1,init_opinions,approval):
@@ -82,13 +79,16 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 		init_utilities.append(a.init_opinions)
 		agents.append(a)
 
-	log_bc_params = False
+	log_bc_params = True
 	if log_bc_params == True:
 		ig_bias = [i.ingroup_bias for i in agents]
 		og_bias = [i.outgroup_bias for i in agents]
 		bounds = [i.delta for i in agents]
 
+		for i in range(num_agents):
+			print(ig_bias[i],og_bias[i],bounds[i])
 		print(np.mean(ig_bias),np.mean(og_bias),np.mean(bounds))
+		print('\n ==================== \n')
 
 	#Check_profile_eligibility here
 	if not check_profile_eligibility(init_utilities,approval):
@@ -104,7 +104,7 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 	for r in rounds:
 		for g in r:
 			for i in g:
-				prob = get_reception_prob(len(g))
+				prob = 1 if group_div == 'large_group' else get_reception_prob(len(g))
 				#print(prob)
 				for j in g:
 					if j == i:

@@ -14,14 +14,14 @@ profile_eligibility_threshold = 0.9
 
 phi = 0.2
 
-const_bc_flag = True
+const_bc_flag = False
 ingroup_bias = 0.2
 outgroup_bias = 0.1
 delta = 0.4
 
 
 rules = ["av", "cc", "seqcc", "rule-x", "minimaxav", "sav", "pav", "seqpav", "geom2", "monroe"]
-group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group']
+group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
 
 num_iterations = 5
 num_groups = int(num_agents/group_size)
