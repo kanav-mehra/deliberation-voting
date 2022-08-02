@@ -43,9 +43,9 @@ class Agent:
 				self.outgroup_bias = random.uniform(0,self.ingroup_bias)
 				self.delta = random.uniform(0,1)
 			else:
-				self.delta = np.clip(np.random.normal(.5,.25),0,1)
-				self.ingroup_bias = np.clip(np.random.normal(.5,.25),0,1)
-				self.outgroup_bias = np.clip(np.random.normal(self.ingroup_bias/2,.25),0,self.ingroup_bias)
+				self.delta = np.clip(np.random.normal(bc_mean,bc_std),0,1)
+				self.ingroup_bias = np.clip(np.random.normal(bc_mean,bc_std),0,1)
+				self.outgroup_bias = np.clip(np.random.normal(self.ingroup_bias/2,bc_std),0,self.ingroup_bias)
 		self.init_opinions = generate_opinions(demo,seed_0,seed_1) if init_ops is None else init_ops
 		self.opinions = self.init_opinions.copy()
 		self.ops_heard = 0

@@ -79,12 +79,12 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 		init_utilities.append(a.init_opinions)
 		agents.append(a)
 
-	log_bc_params = True
+	log_bc_params = False
 	if log_bc_params == True:
 		ig_bias = [i.ingroup_bias for i in agents]
 		og_bias = [i.outgroup_bias for i in agents]
 		bounds = [i.delta for i in agents]
-
+		
 		for i in range(num_agents):
 			print(ig_bias[i],og_bias[i],bounds[i])
 		print(np.mean(ig_bias),np.mean(og_bias),np.mean(bounds))
@@ -137,9 +137,9 @@ def simulate_for_all_group_divs():
 	random.shuffle(seed_1)
 
 	init_opinions = None
-	#approval = random.choices(approval_choices, k=num_agents)
-	approval = np.random.normal(approval_mean, approval_std, num_agents)
-	approval = [int(round(x)) for x in approval]
+	approval = random.choices(approval_choices, k=num_agents)
+	#approval = np.random.normal(approval_mean, approval_std, num_agents)
+	#approval = [int(round(x)) for x in approval]
 	ret = {}
 	#print(approval)
 	for gd in group_divisions:

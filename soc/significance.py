@@ -3,10 +3,12 @@ import numpy as np
 from config import *
 import csv
 
+RESULT_PATH = 'results'
+
 def test_significance(objectives_results):
     setups = list(objectives_results.keys())
     for obj in objectives_results['initial'].keys():
-        fname = 'results/significance/' + obj + '.csv'
+        fname = str.format("{}/significance/{}.csv", RESULT_PATH, obj)
         with open(fname, 'w') as f:
             writer = csv.writer(f)
             writer.writerow(["Rule", "Setup", "Setup", "Significance"])

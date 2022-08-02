@@ -3,6 +3,7 @@ from abcvoting.output import output, INFO, DETAILS, WARNING
 from svvamp import GeneratorProfileCubicUniform, Profile
 import numpy as np
 import csv
+import os
 import random
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
@@ -12,6 +13,8 @@ from main import simulate_for_all_group_divs
 from significance import test_significance
 import matplotlib.pyplot as plt
 from config import *
+
+RESULT_PATH = "results"
 
 def compute_mean(objectives_):
     '''
@@ -40,7 +43,7 @@ def save_boxplots(objectives_, setup):
         plt.xticks(np.arange(1, len(rules)+1), rules)
         plt.ylabel(obj)
         plt.xlabel('Rule')
-        plt.savefig(str.format("results/boxplots/{}_{}.png", setup, obj))
+        plt.savefig(str.format("{}/boxplots/{}_{}.png", RESULT_PATH, setup, obj))
         plt.close()
 
 def compute_objectives(approval_sizes, utilities, minority_projects, majority_projects, setup):
@@ -49,7 +52,16 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     Opinions and utilities are used interchangebly.
     '''
     output.set_verbosity(WARNING)
-    file_name = str.format("results/nC{}_nW{}_nV{}_nS{}_{}", num_alternatives, num_winners, num_agents, num_simulations, setup+".csv")
+
+    # create a directory results if it doesn't exist
+    if not os.path.exists(RESULT_PATH):
+        os.mkdir(RESULT_PATH)
+        os.mkdir(RESULT_PATH+'/boxplots')
+        os.mkdir(RESULT_PATH+'/significance')
+        os.mkdir(RESULT_PATH+'/tables')
+        os.mkdir(RESULT_PATH+'/charts')
+    
+    file_name = str.format("{}/tables/nC{}_nW{}_nV{}_nS{}_{}.csv", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, setup)
 
     # initialize objectives
     objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'voter_coverage': {}, 'voter_satisfaction': {},
