@@ -9,7 +9,7 @@ num_simulations = 100
 approval_mean = 10
 approval_std = 2
 #approval_choices = list(range(approval_low, approval_high+1))
-approval_choices = [3,4,5,6,7,8,9,10]
+#approval_choices = [3,4,5,6,7,8,9,10]
 
 group_size = 10
 profile_eligibility_threshold = 0.9
@@ -27,4 +27,4 @@ rules = ["av", "cc", "seqcc", "rule-x", "minimaxav", "sav", "pav", "seqpav", "ge
 group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
 
 num_iterations = 5
-num_groups = int(num_agents/group_size)
+num_groups = int(num_agents/group_size) 

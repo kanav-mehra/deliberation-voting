@@ -71,11 +71,13 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
         for rule_id in rules:
             objectives[obj][rule_id] = []
     
+    opt_welfares = []
     for n in tqdm(range(num_simulations)):
         profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approval_sizes[n], utilities[n])
         cc_committee = abcrules.compute("cc", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         optimal_representation = representation_score(cc_committee, profile) # cc_committee has optimal representation
+        opt_welfares.append(profile.optimal_welfare)
 
         for rule_id in rules:
             result = abcrules.compute(rule_id, profile.profile_abc, committeesize=num_winners, resolute=True)[0]
@@ -95,6 +97,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             objectives['pjr_scores'][rule_id].append(int(properties.check_PJR(profile.profile_abc, result)))
             objectives['ejr_scores'][rule_id].append(int(properties.check_EJR(profile.profile_abc, result)))
 
+    print(str.format("{} {}", setup, np.round(np.mean(opt_welfares), 3)))
     save_boxplots(objectives, setup)
     objectives_means = compute_mean(objectives)
 
