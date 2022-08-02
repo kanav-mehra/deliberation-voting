@@ -17,6 +17,7 @@ phi = 0.2
 
 # BC Params
 const_bc_flag = False
+bc_params_dist = 'TRUNC_NORM'
 bc_std = 0.25
 bc_mean = 0.5
 ingroup_bias = 0.2

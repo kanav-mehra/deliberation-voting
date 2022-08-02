@@ -3,6 +3,7 @@ import mallows_hamming as mh
 import mallows_kendall as mk
 import numpy as np
 import random
+import scipy.stats as stats
 
 def generate_uniform_utils(ranking):
 	s = list(np.random.uniform(0,1,size=num_alternatives))
@@ -27,6 +28,12 @@ def generate_opinions(demo,seed_0,seed_1):
 	utils = generate_uniform_utils(ranking)
 	return utils
 
+def sample_truncnorm(mu,sigma,lower,upper):
+	trunc = stats.truncnorm((lower - mu) / sigma, 
+							(upper - mu) / sigma, 
+							loc=mu, scale=sigma)
+	return trunc.rvs(1)[0]
+
 class Agent:
 	def __init__(self,id,demo,seed_0,seed_1,init_ops=None):
 		self.id = id
@@ -37,15 +44,18 @@ class Agent:
 			self.outgroup_bias = outgroup_bias
 			self.delta = delta
 		else:
-			mode = 'GAUSSIAN'
-			if mode == 'UNIFORM':
+			if bc_params_dist == 'UNIFORM':
 				self.ingroup_bias = random.uniform(0,1)
 				self.outgroup_bias = random.uniform(0,self.ingroup_bias)
 				self.delta = random.uniform(0,1)
-			else:
+			elif bc_params_dist == 'NORMAL':
 				self.delta = np.clip(np.random.normal(bc_mean,bc_std),0,1)
 				self.ingroup_bias = np.clip(np.random.normal(bc_mean,bc_std),0,1)
 				self.outgroup_bias = np.clip(np.random.normal(self.ingroup_bias/2,bc_std),0,self.ingroup_bias)
+			else:
+				self.delta = sample_truncnorm(bc_mean,bc_std,0,1)
+				self.ingroup_bias = sample_truncnorm(bc_mean,bc_std,0,1)
+				self.outgroup_bias = sample_truncnorm(self.ingroup_bias/2,bc_std,0,self.ingroup_bias)
 		self.init_opinions = generate_opinions(demo,seed_0,seed_1) if init_ops is None else init_ops
 		self.opinions = self.init_opinions.copy()
 		self.ops_heard = 0
