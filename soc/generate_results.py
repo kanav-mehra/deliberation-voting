@@ -8,7 +8,7 @@ import random
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
-from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score
+from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores
 from main import simulate_for_all_group_divs
 from significance import test_significance
 import matplotlib.pyplot as plt
@@ -46,6 +46,25 @@ def save_boxplots(objectives_, setup):
         plt.savefig(str.format("{}/boxplots/{}_{}.png", RESULT_PATH, setup, obj))
         plt.close()
 
+def save_cc_approvals(cc_approvals):
+    gd = ['initial', 'random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
+    width = 0.75
+    plt.figure(figsize=(20,10))
+    ax = plt.gca()
+    xticks = np.arange(len(gd))
+    ax.set_ylabel('CC Approvals')
+    ax.set_xlabel('Group Division Setup')
+    ax.set_xticks(xticks, gd)
+
+    for i in range(num_winners):
+        offset = width*(i-2)/num_winners
+        plot_list = [x[i] for x in cc_approvals.values()]
+        ax.bar(xticks+offset, plot_list, width=width/num_winners, label='Candidate {}'.format(i+1))
+    
+    ax.legend(loc='upper right')
+    ax.set_title('CC Approvals')
+    plt.savefig(str.format("{}/charts/nC{}_nW{}_nV{}_nS{}_{}.png", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, "cc_approvals"))
+
 def compute_objectives(approval_sizes, utilities, minority_projects, majority_projects, setup):
     '''
     Computes objectives for a given set of voting rules given the setup, profile utilities, and approvals.
@@ -71,13 +90,14 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
         for rule_id in rules:
             objectives[obj][rule_id] = []
     
-    opt_welfares = []
+    cc_approvals = []
+
     for n in tqdm(range(num_simulations)):
         profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approval_sizes[n], utilities[n])
         cc_committee = abcrules.compute("cc", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         optimal_representation = representation_score(cc_committee, profile) # cc_committee has optimal representation
-        opt_welfares.append(profile.optimal_welfare)
+        cc_approvals.append(approval_scores(cc_committee, profile))
 
         for rule_id in rules:
             result = abcrules.compute(rule_id, profile.profile_abc, committeesize=num_winners, resolute=True)[0]
@@ -96,11 +116,11 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             objectives['jr_scores'][rule_id].append(int(properties.check_JR(profile.profile_abc, result)))
             objectives['pjr_scores'][rule_id].append(int(properties.check_PJR(profile.profile_abc, result)))
             objectives['ejr_scores'][rule_id].append(int(properties.check_EJR(profile.profile_abc, result)))
-
-    print(str.format("{} {}", setup, np.round(np.mean(opt_welfares), 3)))
+    
     save_boxplots(objectives, setup)
     objectives_means = compute_mean(objectives)
-
+    cc_approvals_mean = np.round(np.mean(cc_approvals, axis=0), 3)
+    
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Voter Coverage", "Voter Satisfaction",
@@ -111,7 +131,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             objectives_means['minority_representation'][rule_id], objectives_means['majority_representation'][rule_id], 
             objectives_means['ejr_scores'][rule_id], objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id]])
     
-    return objectives
+    return objectives, cc_approvals_mean
 
 def check_profile_eligibility(utilities, approvals):
     profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approvals, utilities)
@@ -127,6 +147,7 @@ def check_profile_eligibility(utilities, approvals):
 
 def generate_results():
     objectives_results = {}
+    cc_approvals_results = {}
     approval_sizes = []
     minority_projects = []
     majority_projects = []
@@ -148,13 +169,14 @@ def generate_results():
 
     print('\nAverage approval ballot size =',np.mean(approval_sizes))
     print("\nGenerating results for initial opinions...")
-    objectives_results['initial'] = compute_objectives(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")
+    objectives_results['initial'], cc_approvals_results['initial'] = compute_objectives(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")
 
     print("\nGenerating results for final opinions...")
     for group_div in group_divisions:
         print("\nSetup:", group_div)
-        objectives_results[group_div] = compute_objectives(approval_sizes, final_opinions[group_div], minority_projects, majority_projects, "final_"+group_div)
+        objectives_results[group_div], cc_approvals_results[group_div] = compute_objectives(approval_sizes, final_opinions[group_div], minority_projects, majority_projects, "final_"+group_div)
     
     test_significance(objectives_results)
+    save_cc_approvals(cc_approvals_results)        
 
 generate_results()

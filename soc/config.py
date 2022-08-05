@@ -7,7 +7,7 @@ num_simulations = 100
 
 # Ballot params
 approval_mean = 10
-approval_std = 2
+approval_std = 1
 #approval_choices = list(range(approval_low, approval_high+1))
 #approval_choices = [3,4,5,6,7,8,9,10]
 
@@ -17,7 +17,7 @@ phi = 0.2
 
 # BC Params
 const_bc_flag = False
-bc_params_dist = 'TRUNC_NORM'
+bc_params_dist = 'UNIFORM'
 bc_std = 0.25
 bc_mean = 0.5
 ingroup_bias = 0.2
