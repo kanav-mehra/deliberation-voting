@@ -3,7 +3,7 @@ from abcvoting.output import output, INFO, DETAILS, WARNING
 from svvamp import GeneratorProfileCubicUniform, Profile
 import numpy as np
 import csv
-import os
+import os, ray
 import random
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
@@ -65,6 +65,7 @@ def save_cc_approvals(cc_approvals):
     ax.set_title('CC Approvals')
     plt.savefig(str.format("{}/charts/nC{}_nW{}_nV{}_nS{}_{}.png", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, "cc_approvals"))
 
+@ray.remote
 def compute_objectives(approval_sizes, utilities, minority_projects, majority_projects, setup):
     '''
     Computes objectives for a given set of voting rules given the setup, profile utilities, and approvals.
@@ -92,7 +93,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     
     cc_approvals = []
 
-    for n in tqdm(range(num_simulations)):
+    for n in range(num_simulations):
         profile = ApprovalProfile(num_agents, num_alternatives, num_winners, approval_sizes[n], utilities[n])
         cc_committee = abcrules.compute("cc", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
@@ -168,15 +169,28 @@ def generate_results():
             final_opinions[group_div].append(opinions['final_'+group_div])
 
     print('\nAverage approval ballot size =',np.mean(approval_sizes))
-    print("\nGenerating results for initial opinions...")
+    #print("\nGenerating results for initial opinions...")
+    '''
     objectives_results['initial'], cc_approvals_results['initial'] = compute_objectives(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")
 
     print("\nGenerating results for final opinions...")
     for group_div in group_divisions:
         print("\nSetup:", group_div)
         objectives_results[group_div], cc_approvals_results[group_div] = compute_objectives(approval_sizes, final_opinions[group_div], minority_projects, majority_projects, "final_"+group_div)
+    '''
+
+    ray.init()
+    refs = [compute_objectives.remote(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")]
+    for group_div in group_divisions:
+        refs.append(compute_objectives.remote(approval_sizes, final_opinions[group_div], minority_projects, majority_projects, "final_"+group_div))
     
+    ray_results = ray.get(refs)
+    
+    objectives_results['initial'], cc_approvals_results['initial'] = ray_results[0]
+    for group_div in group_divisions:
+        objectives_results[group_div], cc_approvals_results[group_div] = ray_results[group_divisions.index(group_div)+1]
+
     test_significance(objectives_results)
-    save_cc_approvals(cc_approvals_results)        
+    save_cc_approvals(cc_approvals_results)       
 
 generate_results()
