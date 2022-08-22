@@ -33,7 +33,8 @@ def create_groups(agents, group_div='random'):
 		groups = [groups]
 	elif group_div == 'iterative_golfer':
 		if golfer_from_file:
-			with open('golfer_dump.npy', 'rb') as f:
+			fname = 'golfer_5rounds.npy' if num_iterations == 5 else 'golfer_10rounds.npy'
+			with open(fname, 'rb') as f:
 				res = np.load(f)
 				idx = np.random.choice(len(res))
 				groups = res[idx]

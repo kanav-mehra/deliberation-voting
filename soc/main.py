@@ -119,6 +119,8 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval,check_mode=False):
 					agents[j].update(agents[i].opinions,src_demo=agents[i].demo,prob=prob)
 		ops_after = [z.opinions for z in agents]
 		d = calc_distance(ops_before,ops_after,approval)
+		# Variance instead of the ballot intersection metric
+		#d = np.mean(np.var(ops_after,axis=0))
 		deliberative_movement.append(d)
 		#print('GroupDiv: {}, Round: {}, Movement: {}'.format(group_div,rnum,d))
 		if d < deliberation_stopping_threshold:

@@ -28,6 +28,6 @@ rules = ["av", "cc", "seqcc", "rule-x", "minimaxav", "sav", "pav", "seqpav", "ge
 group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
 
 num_iterations = 5
-deliberation_stopping_threshold = 0.01
+deliberation_stopping_threshold = 0.0
 num_groups = int(num_agents/group_size) 
 golfer_from_file = True
