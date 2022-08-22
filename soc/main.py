@@ -6,6 +6,9 @@ import math
 import numpy as np
 import time
 from check_profile import check_profile_eligibility
+from util_functions import calc_distance
+from deliberation_metrics import return_deliberation_metrics
+import copy
 
 '''
 def gen_rankings_from_utils_np(utils):
@@ -67,7 +70,7 @@ def get_reception_prob(group_size):
 		p = 1
 	return p
 
-def simulate(group_div,seed_0,seed_1,init_opinions,approval):
+def simulate(group_div,seed_0,seed_1,init_opinions,approval,check_mode=False):
 	start = time.time()
 	#Agent creation
 	agents = []
@@ -93,15 +96,19 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 	#Check_profile_eligibility here
 	if not check_profile_eligibility(init_utilities,approval):
 		#print('Profile check failed...')
-		return None, None
+		return False,init_utilities
 
+	if check_mode:
+		return True,init_utilities
 
 	#Create groups
 	rounds = create_groups(agents,group_div)
 	#print(rounds)
+	ops_before = [z.init_opinions for z in agents]
+	deliberative_movement = []
 
 	#Deliberation
-	for r in rounds:
+	for rnum,r in enumerate(rounds):
 		for g in r:
 			for i in g:
 				prob = 1 if group_div == 'large_group' else get_reception_prob(len(g))
@@ -110,6 +117,13 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 					if j == i:
 						continue
 					agents[j].update(agents[i].opinions,src_demo=agents[i].demo,prob=prob)
+		ops_after = [z.opinions for z in agents]
+		d = calc_distance(ops_before,ops_after,approval)
+		deliberative_movement.append(d)
+		#print('GroupDiv: {}, Round: {}, Movement: {}'.format(group_div,rnum,d))
+		if d < deliberation_stopping_threshold:
+			break
+		ops_before = copy.deepcopy(ops_after)
 
 
 	#Profile Creation
@@ -125,35 +139,42 @@ def simulate(group_div,seed_0,seed_1,init_opinions,approval):
 	
 	simul_time = time.time() - start
 	#print(simul_time)
-	return init_opinions, final_opinions
+	return init_opinions, final_opinions, rnum, deliberative_movement
 
 
 
 def simulate_for_all_group_divs():
-	seed_0 = list(range(num_alternatives))
-	random.shuffle(seed_0)
-
-	seed_1 = list(range(num_alternatives))
-	random.shuffle(seed_1)
-
-	init_opinions = None
+	profile_eligible = False
 	#approval = random.choices(approval_choices, k=num_agents)
 	approval = np.random.normal(approval_mean, approval_std, num_agents)
 	approval = [int(round(x)) for x in approval]
-	ret = {}
 	#print(approval)
+
+	while not profile_eligible:
+		seed_0 = list(range(num_alternatives))
+		random.shuffle(seed_0)
+
+		seed_1 = list(range(num_alternatives))
+		random.shuffle(seed_1)
+		#print(seed_0,seed_1)
+		profile_eligible, init_opinions = simulate('random',seed_0,seed_1,None,approval,check_mode=True)
+
+	ret = {}
 	for gd in group_divisions:
-		init_opinions, final_opinions = simulate(gd,seed_0,seed_1,init_opinions,approval)
-		#print(init_opinions)
-		if init_opinions is None:
-			return simulate_for_all_group_divs()
+		init_opinions, final_opinions, del_rounds, del_movement = simulate(gd,seed_0,seed_1,init_opinions,approval)
+		assert init_opinions is not None
 		ret['initial_opinions'] = init_opinions
 		ret['final_'+gd] = final_opinions
+		if gd in ['iterative_random','iterative_golfer']:
+			ret['del_movement_'+gd] = del_movement
+			ret['del_rounds_'+gd] = del_rounds 
 		#print(init_opinions,final_opinions)
 	#print(ret)
 	#print(seed_1,seed_0)
 	ret['majority_projects'],ret['minority_projects'] = classify_alternatives(init_opinions,approval)
 	ret['approval'] = approval
+	del_metrics = return_deliberation_metrics(ret)
+	ret.update(del_metrics)
 	return ret
 
 #r = simulate_for_all_group_divs()

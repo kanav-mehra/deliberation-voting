@@ -13,6 +13,7 @@ from main import simulate_for_all_group_divs
 from significance import test_significance
 import matplotlib.pyplot as plt
 from config import *
+from deliberation_metrics import plot_deliberation_results
 
 RESULT_PATH = "results"
 
@@ -157,9 +158,23 @@ def generate_results():
     for group_div in group_divisions:
         final_opinions[group_div] = []
 
+    variance = []
+    intergroup_dist = []
+    min_drift = []
+    maj_drift = []
+    del_mvmt_golfer = []
+    del_mvmt_random = []
+
     print("\nGenerating profiles...")
     for i in tqdm(range(num_simulations)):
         opinions = simulate_for_all_group_divs()
+        variance.append(opinions['variance'])
+        intergroup_dist.append(opinions['intergroup_dist'])
+        maj_drift.append(opinions['maj_drift'])
+        min_drift.append(opinions['min_drift'])
+        del_mvmt_golfer.append(opinions['del_movement_iterative_golfer'])
+        del_mvmt_random.append(opinions['del_movement_iterative_random'])
+
         approval = opinions['approval']
         approval_sizes.append(approval)
         minority_projects.append(opinions['minority_projects'])
@@ -178,7 +193,7 @@ def generate_results():
         print("\nSetup:", group_div)
         objectives_results[group_div], cc_approvals_results[group_div] = compute_objectives(approval_sizes, final_opinions[group_div], minority_projects, majority_projects, "final_"+group_div)
     '''
-
+    
     ray.init()
     refs = [compute_objectives.remote(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")]
     for group_div in group_divisions:
@@ -191,6 +206,21 @@ def generate_results():
         objectives_results[group_div], cc_approvals_results[group_div] = ray_results[group_divisions.index(group_div)+1]
 
     test_significance(objectives_results)
-    save_cc_approvals(cc_approvals_results)       
+    save_cc_approvals(cc_approvals_results)   
+    
+    xticks = ['initial'] + group_divisions
+    var,var_err = np.mean(variance,axis=0),np.std(variance,axis=0)
+    plot_deliberation_results(var,var_err,"Variance",xticks)
+    igd,igd_err = np.mean(intergroup_dist,axis=0),np.std(intergroup_dist,axis=0)
+    plot_deliberation_results(igd,igd_err,"Intergroup Ballot Disagreement",xticks)
+    xticks.pop(0)
+    mjd,mjd_err = np.mean(maj_drift,axis=0),np.std(maj_drift,axis=0)
+    plot_deliberation_results(mjd,mjd_err,"Majority Ballot Drift",xticks)
+    mnd,mnd_err = np.mean(min_drift,axis=0),np.std(min_drift,axis=0)
+    plot_deliberation_results(mnd,mnd_err,"Minority Ballot Drift",xticks)
+    dmg,dmg_err = np.mean(del_mvmt_golfer,axis=0),np.std(del_mvmt_golfer,axis=0)
+    dmr,dmr_err = np.mean(del_mvmt_random,axis=0),np.std(del_mvmt_random,axis=0)
+    plot_deliberation_results(dmg,dmg_err,"Deliberation Mvmt Golfer",[str(i) for i in range(len(dmg))])
+    plot_deliberation_results(dmr,dmr_err,"Deliberation Mvmt Random",[str(i) for i in range(len(dmr))])    
 
 generate_results()
