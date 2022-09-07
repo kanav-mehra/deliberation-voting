@@ -213,5 +213,25 @@ def plot_deliberation_results(data,err,title,xticks):
 	ax.set_xticklabels(xticks)
 	plt.xlabel('Group Division')
 	plt.ylabel(title)
-	plt.savefig('del_res/' + title + '.png')
+	plt.savefig(RESULT_PATH + '/deliberation/' + title + '.png')
 	plt.close()
+
+
+def plot_compare_iterative(golfer,vanilla, golfer_std, vanilla_std, metric='Deliberation Mvmt'):
+	print(golfer,vanilla)
+	width = .75
+	plt.figure(figsize=(20,10))
+	ax = plt.gca()
+	xticks = np.arange(num_iterations) + 1
+	ax.set_ylabel(metric)
+	ax.set_xlabel('Round')
+
+	ax.bar(xticks - .25*width, golfer, yerr = golfer_std, width = width/2, label = 'golfer')
+	ax.bar(xticks + .25*width, vanilla, yerr = vanilla_std, width = width/2, label = 'random')
+	ax.legend(loc='upper right')
+	ax.set_title('Comparing deliberation movement between iterative_golfer and iterative_random')
+
+	plt.savefig(RESULT_PATH + '/deliberation/' + 'Compare Iterative Methods' + '.png')
+	plt.close()
+
+    

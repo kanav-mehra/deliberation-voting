@@ -31,3 +31,5 @@ num_iterations = 5
 deliberation_stopping_threshold = 0.0
 num_groups = int(num_agents/group_size) 
 golfer_from_file = True
+
+RESULT_PATH = 'results'

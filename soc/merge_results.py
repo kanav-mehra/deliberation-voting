@@ -5,7 +5,6 @@ from config import *
 
 gd = ['initial', 'homo_demo', 'random', 'hetero_demo', 'large_group_wrp', 'iterative_random', 'iterative_golfer', 'large_group']
 metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'EJR Score']
-RESULT_PATH = 'results'
 
 for metric in metrics:
     width = 0.75
