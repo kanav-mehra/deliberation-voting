@@ -62,12 +62,14 @@ def approval_scores(candidate_committee, profile):
                 cand_score += 1
         approval_score.append(cand_score)
     return np.sort(approval_score)
-'''
+
+
 def nash_welfare_score(candidate_committee, profile):
-    #Given an approval profile, calculates the nash welfare score for a winning committee
-    #Nash Welfare Score = Product of utilities for each voter over candidates in the winning committee
+    '''
+    Given an approval profile, calculates the nash welfare score for a winning committee
+    Nash Welfare Score = Product of utilities for each voter over candidates in the winning committee
+    '''
     nash_score = 1
-    for idx in range(len(profile.profile_pref_topk)):
-        nash_score *= profile.profile.preferences_ut[idx, candidate_committee].sum()
-    return nash_score
-'''
+    for idx in range(num_agents):
+        nash_score *= (profile.profile.preferences_ut[idx, candidate_committee].sum())
+    return pow(nash_score, (1/num_agents))

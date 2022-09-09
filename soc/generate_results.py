@@ -8,19 +8,28 @@ import random
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
-from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores
+from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores, nash_welfare_score
 from main import simulate_for_all_group_divs
 from significance import test_significance
 import matplotlib.pyplot as plt
 from config import *
 from deliberation_metrics import plot_deliberation_results, plot_compare_iterative
 
+# create a directory results if it doesn't exist
+if not os.path.exists(RESULT_PATH):
+    os.mkdir(RESULT_PATH)
+    os.mkdir(RESULT_PATH+'/boxplots')
+    os.mkdir(RESULT_PATH+'/significance')
+    os.mkdir(RESULT_PATH+'/tables')
+    os.mkdir(RESULT_PATH+'/charts')
+    os.mkdir(RESULT_PATH+'/deliberation')
+
 def compute_mean(objectives_):
     '''
     Computes mean of all objectives.
     '''
     # initialize objectives
-    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'voter_coverage': {}, 'voter_satisfaction': {}, 
+    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'nash_welfare_score':{}, 'voter_coverage': {}, 'voter_satisfaction': {}, 
     'minority_representation': {}, 'majority_representation':{}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
 
     for obj in objectives_means:
@@ -72,19 +81,10 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     '''
     output.set_verbosity(WARNING)
 
-    # create a directory results if it doesn't exist
-    if not os.path.exists(RESULT_PATH):
-        os.mkdir(RESULT_PATH)
-        os.mkdir(RESULT_PATH+'/boxplots')
-        os.mkdir(RESULT_PATH+'/significance')
-        os.mkdir(RESULT_PATH+'/tables')
-        os.mkdir(RESULT_PATH+'/charts')
-        os.mkdir(RESULT_PATH+'/deliberation')
-
     file_name = str.format("{}/tables/nC{}_nW{}_nV{}_nS{}_{}.csv", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, setup)
 
     # initialize objectives
-    objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'voter_coverage': {}, 'voter_satisfaction': {},
+    objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'nash_welfare_score': {}, 'voter_coverage': {}, 'voter_satisfaction': {},
     'minority_representation': {}, 'majority_representation': {}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
 
     for obj in objectives:
@@ -109,6 +109,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             
             objectives['utilitarian_ratio'][rule_id].append(utilitarian_score(list(result), profile)/profile.optimal_welfare)
             objectives['voter_satisfaction'][rule_id].append(satisfaction_score(result, profile)/num_agents)
+            objectives['nash_welfare_score'][rule_id].append(nash_welfare_score(list(result), profile))
 
             minority_representation, majority_representation = project_representation_score(result, minority_projects[n], majority_projects[n])
             objectives['minority_representation'][rule_id].append(minority_representation)
@@ -124,11 +125,11 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Voter Coverage", "Voter Satisfaction",
+        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Nash Welfare", "Voter Coverage", "Voter Satisfaction",
          "Minority Representation", "Majority Representation", "EJR Score", "PJR Score", "JR Score"])
         for rule_id in rules:
             writer.writerow([rule_id, objectives_means['utilitarian_ratio'][rule_id], objectives_means['representation_ratio'][rule_id], 
-            objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], 
+            objectives_means['nash_welfare_score'][rule_id], objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], 
             objectives_means['minority_representation'][rule_id], objectives_means['majority_representation'][rule_id], 
             objectives_means['ejr_scores'][rule_id], objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id]])
     
@@ -183,16 +184,7 @@ def generate_results():
             final_opinions[group_div].append(opinions['final_'+group_div])
 
     print('\nAverage approval ballot size =',np.mean(approval_sizes))
-    #print("\nGenerating results for initial opinions...")
-    '''
-    objectives_results['initial'], cc_approvals_results['initial'] = compute_objectives(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")
 
-    print("\nGenerating results for final opinions...")
-    for group_div in group_divisions:
-        print("\nSetup:", group_div)
-        objectives_results[group_div], cc_approvals_results[group_div] = compute_objectives(approval_sizes, final_opinions[group_div], minority_projects, majority_projects, "final_"+group_div)
-    '''
-    
     ray.init()
     refs = [compute_objectives.remote(approval_sizes, init_opinions, minority_projects, majority_projects, "initial")]
     for group_div in group_divisions:

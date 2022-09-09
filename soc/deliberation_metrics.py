@@ -204,7 +204,7 @@ parallel_analyser()
 '''
 
 def plot_deliberation_results(data,err,title,xticks):
-	print(title,data,err)
+	#print(title,data,err)
 	plt.figure(figsize=(20,5))
 	ax = plt.subplot()
 	idx = list(range(len(data)))
@@ -218,7 +218,7 @@ def plot_deliberation_results(data,err,title,xticks):
 
 
 def plot_compare_iterative(golfer,vanilla, golfer_std, vanilla_std, metric='Deliberation Mvmt'):
-	print(golfer,vanilla)
+	#print(golfer,vanilla)
 	width = .75
 	plt.figure(figsize=(20,10))
 	ax = plt.gca()

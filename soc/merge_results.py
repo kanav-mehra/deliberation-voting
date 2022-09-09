@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from config import *
 
 gd = ['initial', 'homo_demo', 'random', 'hetero_demo', 'large_group_wrp', 'iterative_random', 'iterative_golfer', 'large_group']
-metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'EJR Score']
+metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Nash Welfare', 'Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'EJR Score']
 
 for metric in metrics:
     width = 0.75
@@ -15,10 +15,11 @@ for metric in metrics:
     ax.set_xlabel('Rule')
     ax.set_xticks(xticks, rules)
     
-    if metric not in ['Voter Satisfaction', 'Minority Representation', 'Majority Representation']:
+    if metric not in ['Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'Nash Welfare']:
         ax.set_ylim([0.6, 1.0])
     if metric=='EJR Score':
         ax.set_ylim([0, 1])
+    
 
     for i,file in enumerate(gd):
         if file=='initial':
