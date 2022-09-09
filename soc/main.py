@@ -163,7 +163,7 @@ def simulate_for_all_group_divs():
 
 	ret = {}
 	for gd in group_divisions:
-		init_opinions, final_opinions, del_rounds, del_movement = simulate(gd,seed_0,seed_1,init_opinions,approval)
+		_, final_opinions, del_rounds, del_movement = simulate(gd,seed_0,seed_1,init_opinions,approval)
 		assert init_opinions is not None
 		ret['initial_opinions'] = init_opinions
 		ret['final_'+gd] = final_opinions
