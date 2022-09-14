@@ -24,8 +24,11 @@ ingroup_bias = 0.2
 outgroup_bias = 0.1
 delta = 0.4
 
-rules = ["av", "cc", "seqcc", "rule-x", "minimaxav", "sav", "pav", "seqpav", "geom2", "monroe"]
-group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
+#rules = ["av", "cc", "seqcc", "rule-x", "minimaxav", "sav", "pav", "seqpav", "geom2", "monroe"]
+#group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
+
+rules = ["av", "rule-x", "pav", "cc"]
+group_divisions = ['random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group']
 
 num_iterations = 5
 deliberation_stopping_threshold = 0.0

@@ -3,8 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from config import *
 
-gd = ['initial', 'homo_demo', 'random', 'hetero_demo', 'large_group_wrp', 'iterative_random', 'iterative_golfer', 'large_group']
-metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Nash Welfare', 'Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'EJR Score']
+gd = ['initial', 'homo_demo', 'random', 'hetero_demo', 'iterative_random', 'iterative_golfer', 'large_group']
+metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Utility Representation Aggregate', 'Nash Welfare', 'Voter Satisfaction', 'Minority Representation', 'EJR Score']
 
 for metric in metrics:
     width = 0.75

@@ -8,7 +8,7 @@ import random
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
-from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores
+from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores, nash_welfare_score
 from main import simulate_for_all_group_divs
 from significance import test_significance
 import matplotlib.pyplot as plt
@@ -38,7 +38,7 @@ def compute_mean(objectives_):
     Computes mean of all objectives.
     '''
     # initialize objectives
-    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'voter_coverage': {}, 'voter_satisfaction': {}, 
+    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score':{}, 'voter_coverage': {}, 'voter_satisfaction': {}, 
     'minority_representation': {}, 'majority_representation':{}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
 
     for obj in objectives_means:
@@ -64,7 +64,7 @@ def save_boxplots(objectives_, setup):
         plt.close()
 
 def save_cc_approvals(cc_approvals):
-    gd = ['initial', 'random','homo_demo','hetero_demo', 'iterative_golfer', 'iterative_random','large_group','large_group_wrp']
+    gd = ['initial'] + group_divisions
     width = 0.75
     plt.figure(figsize=(20,10))
     ax = plt.gca()
@@ -72,10 +72,11 @@ def save_cc_approvals(cc_approvals):
     ax.set_ylabel('CC Approvals')
     ax.set_xlabel('Group Division Setup')
     ax.set_xticks(xticks, gd)
+    candidate_approvals = [cc_approvals[x] for x in gd]
 
     for i in range(num_winners):
         offset = width*(i-2)/num_winners
-        plot_list = [x[i] for x in cc_approvals.values()]
+        plot_list = [x[i] for x in candidate_approvals]
         ax.bar(xticks+offset, plot_list, width=width/num_winners, label='Candidate {}'.format(i+1))
     
     ax.legend(loc='upper right')
@@ -94,7 +95,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     file_name = str.format("{}/tables/nC{}_nW{}_nV{}_nS{}_{}.csv", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, setup)
 
     # initialize objectives
-    objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'voter_coverage': {}, 'voter_satisfaction': {},
+    objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score':{}, 'voter_coverage': {}, 'voter_satisfaction': {},
     'minority_representation': {}, 'majority_representation': {}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
 
     for obj in objectives:
@@ -117,11 +118,16 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             result = abcrules.compute(rule_id, profile.profile_abc, committeesize=num_winners, resolute=True)[0]
             
             rep_score = representation_score(result, profile)
+            rep_ratio = rep_score/optimal_representation
+            util_ratio = utilitarian_score(list(result), profile)/profile.optimal_welfare
+
             objectives['voter_coverage'][rule_id].append(rep_score)
-            objectives['representation_ratio'][rule_id].append(rep_score/optimal_representation)
-            
-            objectives['utilitarian_ratio'][rule_id].append(utilitarian_score(list(result), profile)/profile.optimal_welfare)
+            objectives['representation_ratio'][rule_id].append(rep_ratio)
+            objectives['utilitarian_ratio'][rule_id].append(util_ratio)
+
+            objectives['utility_rep_agg'][rule_id].append(rep_ratio*util_ratio)
             objectives['voter_satisfaction'][rule_id].append(satisfaction_score(result, profile)/num_agents)
+            objectives['nash_welfare_score'][rule_id].append(nash_welfare_score(list(result), profile))
 
             minority_representation, majority_representation = project_representation_score(result, minority_projects[n], majority_projects[n])
             objectives['minority_representation'][rule_id].append(minority_representation)
@@ -137,11 +143,11 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Voter Coverage", "Voter Satisfaction",
+        writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Utility Representation Aggregate", "Nash Welfare", "Voter Coverage", "Voter Satisfaction",
          "Minority Representation", "Majority Representation", "EJR Score", "PJR Score", "JR Score"])
         for rule_id in rules:
-            writer.writerow([rule_id, objectives_means['utilitarian_ratio'][rule_id], objectives_means['representation_ratio'][rule_id], 
-            objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], 
+            writer.writerow([rule_id, objectives_means['utilitarian_ratio'][rule_id], objectives_means['representation_ratio'][rule_id], objectives_means['utility_rep_agg'][rule_id],
+            objectives_means['nash_welfare_score'][rule_id], objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], 
             objectives_means['minority_representation'][rule_id], objectives_means['majority_representation'][rule_id], 
             objectives_means['ejr_scores'][rule_id], objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id]])
     
