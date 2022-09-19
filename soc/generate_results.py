@@ -5,6 +5,7 @@ import numpy as np
 import csv
 import os, ray
 import random
+import json
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
@@ -23,6 +24,12 @@ if not os.path.exists(RESULT_PATH):
     os.mkdir(RESULT_PATH+'/tables')
     os.mkdir(RESULT_PATH+'/charts')
     os.mkdir(RESULT_PATH+'/deliberation')
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 def compute_mean(objectives_):
     '''
@@ -200,8 +207,12 @@ def generate_results():
     objectives_results['initial'], cc_approvals_results['initial'] = ray_results[0]
     for group_div in group_divisions:
         objectives_results[group_div], cc_approvals_results[group_div] = ray_results[group_divisions.index(group_div)+1]
+    
+    # Dump objectives results into a json file
+    with open('results/objectives_results.json', 'w') as fp:
+        json.dump(objectives_results, fp, cls=NumpyEncoder)
 
-    test_significance(objectives_results)
+    #test_significance(objectives_results)
     save_cc_approvals(cc_approvals_results)   
     
     xticks = ['initial'] + group_divisions
