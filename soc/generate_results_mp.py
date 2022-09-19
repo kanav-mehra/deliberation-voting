@@ -278,7 +278,12 @@ def generate_results():
     assert len(os.listdir('tmp_res')) == 0
     part2 = time.time()
     print('Done with voting and computation in', part2 - part1)
-    test_significance(objectives_results)
+
+    # Dump objectives results into a json file
+    with open('results/objectives_results.json', 'w') as fp:
+        json.dump(objectives_results, fp, cls=NumpyEncoder)
+
+    #test_significance(objectives_results)
     save_cc_approvals(cc_approvals_results)   
 
     # Deliberation plots
