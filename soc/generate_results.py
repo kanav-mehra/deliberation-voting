@@ -11,7 +11,6 @@ from tqdm import tqdm
 from approval_profile import ApprovalProfile
 from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores, nash_welfare_score
 from main import simulate_for_all_group_divs
-from significance import test_significance
 import matplotlib.pyplot as plt
 from config import *
 from deliberation_metrics import plot_deliberation_results, plot_compare_iterative
@@ -62,14 +61,16 @@ def save_boxplots(objectives_, setup):
         plt.close()
 
 def save_cc_approvals(cc_approvals):
+    plt.rcParams.update({'font.size': 72})
     gd = ['initial'] + group_divisions
+    gd_names = ['initial', 'random', 'homogeneous', 'heterogeneous', 'iterative golfer', 'iterative random', 'large group']
     width = 0.75
-    plt.figure(figsize=(20,10))
+    plt.figure(figsize=(50,30))
     ax = plt.gca()
     xticks = np.arange(len(gd))
-    ax.set_ylabel('CC Approvals')
+    ax.set_ylabel('Approval Scores')
     ax.set_xlabel('Group Division Setup')
-    ax.set_xticks(xticks, gd)
+    ax.set_xticks(xticks, gd_names)
     candidate_approvals = [cc_approvals[x] for x in gd]
 
     for i in range(num_winners):
@@ -77,8 +78,9 @@ def save_cc_approvals(cc_approvals):
         plot_list = [x[i] for x in candidate_approvals]
         ax.bar(xticks+offset, plot_list, width=width/num_winners, label='Candidate {}'.format(i+1))
     
-    ax.legend(loc='upper right')
-    ax.set_title('CC Approvals')
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.12), ncol=5, prop={'size': 48})
+    ax.set_title('Approval Scores for candidates in CC committees')
+    plt.tight_layout(pad=1.0)
     plt.savefig(str.format("{}/charts/nC{}_nW{}_nV{}_nS{}_{}.png", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, "cc_approvals"))
 
 @ray.remote
