@@ -8,7 +8,7 @@ plt.rcParams.update({'font.size': 72})
 
 gd = ['initial', 'homo_demo', 'random', 'hetero_demo', 'iterative_random', 'iterative_golfer', 'large_group']
 gd_names = ['initial', 'homogeneous', 'random', 'heterogeneous', 'iterative random', 'iterative golfer', 'large group']
-metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Utility Representation Aggregate', 'Voter Satisfaction', 'EJR Score']
+metrics = ['Utilitarian Ratio', 'Representation Ratio', 'Utility Representation Aggregate', 'Voter Satisfaction', 'EJR Score', 'PJR Score', 'ViolationsX', 'ViolationsY']
 colors = ['blue', 'orange', 'green', 'red', 'hotpink', 'purple', 'brown']
 
 for metric in metrics:
@@ -22,7 +22,7 @@ for metric in metrics:
     
     if metric not in ['Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'Nash Welfare']:
         ax.set_ylim([0.6, 1.0])
-    if metric=='EJR Score':
+    if metric in ['EJR Score', 'PJR Score', 'ViolationsX', 'ViolationsY']:
         ax.set_ylim([0, 1])
     
 

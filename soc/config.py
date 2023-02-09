@@ -1,12 +1,12 @@
 # Setup
 num_agents = 100
 majority = 0.8
-num_alternatives = 50
-num_winners = 5
-num_simulations = 100
+num_alternatives = 30
+num_winners = 3
+num_simulations = 10000
 
 # Ballot params
-approval_mean = 10
+approval_mean = 2*num_winners
 approval_std = 1
 #approval_choices = list(range(approval_low, approval_high+1))
 #approval_choices = [3,4,5,6,7,8,9,10]
@@ -35,4 +35,4 @@ deliberation_stopping_threshold = 0.0
 num_groups = int(num_agents/group_size) 
 golfer_from_file = True
 
-RESULT_PATH = 'results'
+RESULT_PATH = 'results'+str(num_alternatives)

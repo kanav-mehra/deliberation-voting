@@ -9,7 +9,8 @@ import json
 from abcvoting.preferences import Profile as abcpf
 from tqdm import tqdm
 from approval_profile import ApprovalProfile
-from objectives import utilitarian_score, representation_score, satisfaction_score, project_representation_score, approval_scores, nash_welfare_score
+from objectives import utilitarian_score, representation_score, satisfaction_score, perc_satisfaction,\
+    project_representation_score, approval_scores, nash_welfare_score
 from main import simulate_for_all_group_divs
 import matplotlib.pyplot as plt
 from config import *
@@ -23,6 +24,7 @@ if not os.path.exists(RESULT_PATH):
     os.mkdir(RESULT_PATH+'/tables')
     os.mkdir(RESULT_PATH+'/charts')
     os.mkdir(RESULT_PATH+'/deliberation')
+    os.mkdir(RESULT_PATH+'/violations')
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -36,7 +38,7 @@ def compute_mean(objectives_):
     '''
     # initialize objectives
     objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score':{}, 'voter_coverage': {}, 'voter_satisfaction': {}, 
-    'minority_representation': {}, 'majority_representation':{}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
+    'minority_representation': {}, 'majority_representation':{}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}, 'violationsx': {}, 'violationsy': {}}
 
     for obj in objectives_means:
         for rule_id in rules:
@@ -44,7 +46,10 @@ def compute_mean(objectives_):
     
     for obj in objectives_:
         for rule_id in rules:
-            objectives_means[obj][rule_id] = np.round(np.mean(objectives_[obj][rule_id]), 3)
+            if objectives_[obj][rule_id]:
+                objectives_means[obj][rule_id] = np.round(np.mean(objectives_[obj][rule_id]), 3)
+            else:
+                objectives_means[obj][rule_id] = 0
     return objectives_means
 
 def save_boxplots(objectives_, setup):
@@ -58,6 +63,21 @@ def save_boxplots(objectives_, setup):
         plt.ylabel(obj)
         plt.xlabel('Rule')
         plt.savefig(str.format("{}/boxplots/{}_{}.png", RESULT_PATH, setup, obj))
+        plt.close()
+
+def plot_violations(violationsx, violationsy, setup):
+    '''
+    Plots violations for all rules.
+    '''
+    for rule in violationsx:
+        plt.figure(figsize=(20,10))
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
+        plt.scatter(violationsx[rule], violationsy[rule])
+        plt.xlabel('Proportion of Voter Group')
+        plt.ylabel('Violation Extent')
+        plt.title(rule+' '+setup)
+        plt.savefig(str.format("{}/violations/{}_{}.png", RESULT_PATH, setup, rule))
         plt.close()
 
 def save_cc_approvals(cc_approvals):
@@ -95,7 +115,7 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
 
     # initialize objectives
     objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score': {}, 'voter_coverage': {}, 'voter_satisfaction': {},
-    'minority_representation': {}, 'majority_representation': {}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}}
+    'minority_representation': {}, 'majority_representation': {}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}, 'violationsx': {}, 'violationsy': {}}
 
     for obj in objectives:
         for rule_id in rules:
@@ -109,10 +129,11 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
         av_committee = abcrules.compute("av", profile.profile_abc, committeesize=num_winners, resolute=True)[0]
         optimal_representation = representation_score(cc_committee, profile) # cc_committee has optimal representation
         cc_approvals.append(approval_scores(cc_committee, profile))
+        committee_results = []
 
         for rule_id in rules:
             result = abcrules.compute(rule_id, profile.profile_abc, committeesize=num_winners, resolute=True)[0]
-            
+            committee_results.append((rule_id, list(result)))
             rep_score = representation_score(result, profile)
             rep_ratio = rep_score/optimal_representation
             util_ratio = utilitarian_score(list(result), profile)/profile.optimal_welfare
@@ -132,20 +153,28 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             objectives['jr_scores'][rule_id].append(int(properties.check_JR(profile.profile_abc, result)))
             objectives['pjr_scores'][rule_id].append(int(properties.check_PJR(profile.profile_abc, result)))
             objectives['ejr_scores'][rule_id].append(int(properties.check_EJR(profile.profile_abc, result)))
-    
+        
+        satisfaction_results = ray.get([perc_satisfaction.remote(profile.profile_abc, cm[0], cm[1]) for cm in committee_results])
+        for sr in satisfaction_results:
+            rule_id = sr[0]
+            objectives['violationsx'][rule_id] += sr[1]
+            objectives['violationsy'][rule_id] += sr[2]
+        
     save_boxplots(objectives, setup)
+    plot_violations(objectives['violationsx'], objectives['violationsy'], setup)
     objectives_means = compute_mean(objectives)
     cc_approvals_mean = np.round(np.mean(cc_approvals, axis=0), 3)
     
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Utility Representation Aggregate", "Nash Welfare", "Voter Coverage", "Voter Satisfaction",
-         "Minority Representation", "Majority Representation", "EJR Score", "PJR Score", "JR Score"])
+         "Minority Representation", "Majority Representation", "EJR Score", "PJR Score", "JR Score", "ViolationsX", "ViolationsY"])
         for rule_id in rules:
             writer.writerow([rule_id, objectives_means['utilitarian_ratio'][rule_id], objectives_means['representation_ratio'][rule_id], objectives_means['utility_rep_agg'][rule_id],
             objectives_means['nash_welfare_score'][rule_id], objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], 
             objectives_means['minority_representation'][rule_id], objectives_means['majority_representation'][rule_id], 
-            objectives_means['ejr_scores'][rule_id], objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id]])
+            objectives_means['ejr_scores'][rule_id], objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id],
+            objectives_means['violationsx'][rule_id], objectives_means['violationsy'][rule_id]])
     
     return objectives, cc_approvals_mean
 
@@ -211,7 +240,7 @@ def generate_results():
         objectives_results[group_div], cc_approvals_results[group_div] = ray_results[group_divisions.index(group_div)+1]
     
     # Dump objectives results into a json file
-    with open('results/objectives_results.json', 'w') as fp:
+    with open(str.format('{}/objectives_results.json', RESULT_PATH), 'w') as fp:
         json.dump(objectives_results, fp, cls=NumpyEncoder)
 
     #test_significance(objectives_results)
