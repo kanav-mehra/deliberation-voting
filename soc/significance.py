@@ -44,4 +44,4 @@ def read_json(fname):
 fname = str.format("{}/objectives_results.json", RESULT_PATH)
 objectives_results = read_json(fname)
 test_significance(objectives_results)
-test_normality(objectives_results)
+#test_normality(objectives_results)
