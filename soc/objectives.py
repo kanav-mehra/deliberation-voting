@@ -75,47 +75,27 @@ def nash_welfare_score(candidate_committee, profile):
         nash_score *= (profile.profile.preferences_ut[idx, candidate_committee].sum())
     return pow(nash_score, (1/num_agents))
 
-def find_cohesive_groups(committee_size, profile):
-    cohesive_groups = []
-    # considering ell-cohesive groups
-    for ell in range(1, committee_size + 1):
-        for size in range(ell, profile.num_cand+1):
-            for group in itertools.combinations(profile.candidates, size):
-                ndash = []
-                for vi, voter in enumerate(profile):
-                    i=0
-                    for cand in group:
-                        if cand in voter.approved:
-                            i+=1
-                    if i==size:
-                        ndash.append(vi)
-                if len(ndash) >= math.ceil(ell * (len(profile) / committee_size)):
-                    detailed_information = {
-                            "cohesive_group": ndash,
-                            "ell": ell,
-                            "joint_candidates": group,
-                        }
-                    cohesive_groups.append(detailed_information)
-    return cohesive_groups
-
 @ray.remote
 def perc_satisfaction(prof, rule, committee):
     datax = []
     datay = []
     k = num_winners
+    num_cohesive_groups = 0
     for cohesiveness in range(1,k+1):
         for s in itertools.combinations(prof.candidates, cohesiveness):
             voters = [i for i in range(len(prof)) if set(s) <= prof[i].approved]
             if len(voters)*k/len(prof) >= cohesiveness:
+                num_cohesive_groups += 1
                 satisfaction = [len(set(committee) & prof[i].approved) for i in voters]
                 satisfaction.sort()
                 for subgroupsize in range(len(voters),0,-1):
                     if subgroupsize*k < cohesiveness*len(prof): # corresponds to subgroupsize*k/len(prof.preferences) < cohesiveness*
                         break  # group too small to have a justifiable representation of *cohesiveness*
+                    num_cohesive_groups += math.comb(len(voters), subgroupsize)
                     dataxpoint = subgroupsize/float(len(prof))
                     jar = min(subgroupsize*k/float(len(prof)),cohesiveness)
                     dataypoint = sum(satisfaction[:subgroupsize])/float(subgroupsize*jar)  # average satisfaction / jar
                     if dataypoint <= 0.9999999:  # only a violation if smaller than 1 ( 0.9999999 chosen due to float rounding)
                         datax.append(dataxpoint)
                         datay.append(dataypoint)
-    return rule, datax, datay
+    return rule, datax, datay, num_cohesive_groups

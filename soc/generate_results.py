@@ -37,8 +37,9 @@ def compute_mean(objectives_):
     Computes mean of all objectives.
     '''
     # initialize objectives
-    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score':{}, 'voter_coverage': {}, 'voter_satisfaction': {}, 
-    'minority_representation': {}, 'majority_representation':{}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}, 'violationsx': {}, 'violationsy': {}}
+    objectives_means = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score':{}, 
+    'voter_coverage': {}, 'voter_satisfaction': {}, 'minority_representation': {}, 'majority_representation':{}, 'jr_scores': {}, 
+    'pjr_scores': {}, 'ejr_scores': {}, 'violationsx': {}, 'violationsy': {}, 'cohesive_groups': {}, 'violation_percent': {}}
 
     for obj in objectives_means:
         for rule_id in rules:
@@ -65,7 +66,7 @@ def save_boxplots(objectives_, setup):
         plt.savefig(str.format("{}/boxplots/{}_{}.png", RESULT_PATH, setup, obj))
         plt.close()
 
-def plot_violations(violationsx, violationsy, setup):
+def plot_violations(violationsx, violationsy, cohesive_groups, violation_percent, setup):
     '''
     Plots violations for all rules.
     '''
@@ -76,7 +77,10 @@ def plot_violations(violationsx, violationsy, setup):
         plt.scatter(violationsx[rule], violationsy[rule])
         plt.xlabel('Proportion of Voter Group')
         plt.ylabel('Violation Extent')
-        plt.title(rule+' '+setup)
+        vcount = len(violationsx[rule])
+        gcount = sum(cohesive_groups[rule])
+        percent = sum(violation_percent[rule])/num_simulations
+        plt.title(str.format("{}_{}_{}_{}_{}_{}", rule, setup, vcount, gcount, vcount/gcount, percent))
         plt.savefig(str.format("{}/violations/{}_{}.png", RESULT_PATH, setup, rule))
         plt.close()
 
@@ -114,8 +118,9 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
     file_name = str.format("{}/tables/nC{}_nW{}_nV{}_nS{}_{}.csv", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, setup)
 
     # initialize objectives
-    objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score': {}, 'voter_coverage': {}, 'voter_satisfaction': {},
-    'minority_representation': {}, 'majority_representation': {}, 'jr_scores': {}, 'pjr_scores': {}, 'ejr_scores': {}, 'violationsx': {}, 'violationsy': {}}
+    objectives = {'representation_ratio': {}, 'utilitarian_ratio': {}, 'utility_rep_agg': {}, 'nash_welfare_score': {}, 
+    'voter_coverage': {}, 'voter_satisfaction': {}, 'minority_representation': {}, 'majority_representation': {}, 'jr_scores': {},
+    'pjr_scores': {}, 'ejr_scores': {}, 'violationsx': {}, 'violationsy': {}, 'cohesive_groups': {}, 'violation_percent': {}}
 
     for obj in objectives:
         for rule_id in rules:
@@ -159,22 +164,24 @@ def compute_objectives(approval_sizes, utilities, minority_projects, majority_pr
             rule_id = sr[0]
             objectives['violationsx'][rule_id] += sr[1]
             objectives['violationsy'][rule_id] += sr[2]
+            objectives['cohesive_groups'][rule_id].append(sr[3])
+            objectives['violation_percent'][rule_id].append(len(sr[1])/sr[3])
         
     save_boxplots(objectives, setup)
-    plot_violations(objectives['violationsx'], objectives['violationsy'], setup)
+    plot_violations(objectives['violationsx'], objectives['violationsy'], objectives['cohesive_groups'], objectives['violation_percent'], setup)
     objectives_means = compute_mean(objectives)
     cc_approvals_mean = np.round(np.mean(cc_approvals, axis=0), 3)
     
     with open(file_name, 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Rule", "Utilitarian Ratio", "Representation Ratio", "Utility Representation Aggregate", "Nash Welfare", "Voter Coverage", "Voter Satisfaction",
-         "Minority Representation", "Majority Representation", "EJR Score", "PJR Score", "JR Score", "ViolationsX", "ViolationsY"])
+         "Minority Representation", "Majority Representation", "EJR Score", "PJR Score", "JR Score", "ViolationsX", "ViolationsY", "Cohesive Groups", "Violation Percent"])
         for rule_id in rules:
             writer.writerow([rule_id, objectives_means['utilitarian_ratio'][rule_id], objectives_means['representation_ratio'][rule_id], objectives_means['utility_rep_agg'][rule_id],
             objectives_means['nash_welfare_score'][rule_id], objectives_means['voter_coverage'][rule_id], objectives_means['voter_satisfaction'][rule_id], 
             objectives_means['minority_representation'][rule_id], objectives_means['majority_representation'][rule_id], 
             objectives_means['ejr_scores'][rule_id], objectives_means['pjr_scores'][rule_id], objectives_means['jr_scores'][rule_id],
-            objectives_means['violationsx'][rule_id], objectives_means['violationsy'][rule_id]])
+            objectives_means['violationsx'][rule_id], objectives_means['violationsy'][rule_id], objectives_means['cohesive_groups'][rule_id], objectives_means['violation_percent'][rule_id]])
     
     return objectives, cc_approvals_mean
 

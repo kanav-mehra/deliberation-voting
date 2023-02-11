@@ -3,7 +3,7 @@ num_agents = 100
 majority = 0.8
 num_alternatives = 30
 num_winners = 3
-num_simulations = 10000
+num_simulations = 100
 
 # Ballot params
 approval_mean = 2*num_winners
