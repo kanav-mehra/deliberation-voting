@@ -80,22 +80,25 @@ def perc_satisfaction(prof, rule, committee):
     datax = []
     datay = []
     k = num_winners
-    num_cohesive_groups = 0
+    cohesive_groups_set = set()
     for cohesiveness in range(1,k+1):
         for s in itertools.combinations(prof.candidates, cohesiveness):
             voters = [i for i in range(len(prof)) if set(s) <= prof[i].approved]
             if len(voters)*k/len(prof) >= cohesiveness:
-                num_cohesive_groups += 1
+                cohesive_groups_set.add(frozenset(voters))
                 satisfaction = [len(set(committee) & prof[i].approved) for i in voters]
                 satisfaction.sort()
                 for subgroupsize in range(len(voters),0,-1):
                     if subgroupsize*k < cohesiveness*len(prof): # corresponds to subgroupsize*k/len(prof.preferences) < cohesiveness*
                         break  # group too small to have a justifiable representation of *cohesiveness*
-                    num_cohesive_groups += math.comb(len(voters), subgroupsize)
+                    for subgroup in itertools.combinations(voters, subgroupsize):
+                        cohesive_groups_set.add(frozenset(subgroup))
                     dataxpoint = subgroupsize/float(len(prof))
                     jar = min(subgroupsize*k/float(len(prof)),cohesiveness)
                     dataypoint = sum(satisfaction[:subgroupsize])/float(subgroupsize*jar)  # average satisfaction / jar
                     if dataypoint <= 0.9999999:  # only a violation if smaller than 1 ( 0.9999999 chosen due to float rounding)
                         datax.append(dataxpoint)
                         datay.append(dataypoint)
-    return rule, datax, datay, num_cohesive_groups
+    #print("Rule: ", rule)
+    #print(" Cohesive Groups: ", len(cohesive_groups_set))
+    return rule, datax, datay, len(cohesive_groups_set)

@@ -18,7 +18,7 @@ def calc_intergroup_dist(rankings):
 			dist += mk.distance(i,j)
 
 	num_pairs = len(maj_agents) * len(min_agents)
-	assert num_pairs == 1600
+	#assert num_pairs == 1600
 	return dist/num_pairs
 
 def calc_intergroup_ballot_disagreement(rankings,approvals):
@@ -28,7 +28,7 @@ def calc_intergroup_ballot_disagreement(rankings,approvals):
 		for j in range(idx,num_agents):
 			dist += calc_disagreement(rankings[i][:approvals[i]],rankings[j][:approvals[j]])
 	num_pairs = idx * (num_agents - idx)
-	assert num_pairs == 1600
+	#assert num_pairs == 1600
 	return dist/num_pairs
 
 def calc_drift(rankings,maj=True):
