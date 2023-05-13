@@ -3,7 +3,7 @@
 This is the code repository for the experiments in the paper "Deliberation and Voting in Approval-Based Multi-Winner Elections" by Kanav Mehra, Nanda K. Sreenivas, Kate Larson [1].
 
 ## Code Structure
-Teh required code files are in the "soc" directory. The main code for the experiments can be run using the "soc/generate_results.py" (uses Ray) or "soc/generate_results_mp.py" (uses Python multiprocessing). The respective agent parameters and experimental setup details are defined in config.py. For reproducing results in the paper, please use the config as it is. 
+The required code files are in the "soc" directory. The main code for the experiments can be run using the "soc/generate_results.py" (uses Ray) or "soc/generate_results_mp.py" (uses Python multiprocessing). The respective agent parameters and experimental setup details are defined in config.py. For reproducing results in the paper, please use the config as it is. 
 
 Note: This repository is still a work in progress. Please reach out if you have any questions. 
 
