@@ -204,20 +204,20 @@ parallel_analyser()
 '''
 
 def plot_deliberation_results(data,err,title,xticks):
-	plt.rcParams.update({'font.size': 56})
+	plt.rcParams.update({'font.size': 75})
 	gd_names = ['initial', 'random', 'homogeneous', 'heterogeneous', 'iterative golfer', 'iterative random', 'large group']
 	#print(title,data,err)
 	plt.figure(figsize=(50,30))
 	ax = plt.subplot()
 	idx = list(range(len(data)))
 	ax.bar(idx,data,yerr=err,ecolor='black', align='center',width=0.3)
-	ax.set_xticks(idx)
+	ax.set_xticks(idx, rotation=45)
 	if title=='Variance':
-		ax.set_xticklabels(gd_names)
+		ax.set_xticklabels(gd_names, fontsize=75)
 	else:
-		ax.set_xticklabels(xticks)
-	plt.xlabel('Deliberation Mechanism')
-	plt.ylabel(title)
+		ax.set_xticklabels(xticks, fontsize=75)
+	plt.xlabel('Deliberation Mechanism', fontsize=75)
+	plt.ylabel(title, fontsize=75)
 	plt.tight_layout(pad=1.0)
 	plt.savefig(RESULT_PATH + '/deliberation/' + title + '.png')
 	plt.close()

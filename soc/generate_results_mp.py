@@ -282,8 +282,18 @@ def generate_results():
     print('Done with voting and computation in', part2 - part1)
 
     # Dump objectives results into a json file
-    with open('results/objectives_results.json', 'w') as fp:
+    objectives_file = str.format("{}/objectives_results.json", RESULT_PATH)
+
+    with open(objectives_file, 'w') as fp:
         json.dump(objectives_results, fp, cls=NumpyEncoder)
+    
+    variance_file = str.format("{}/variance.json", RESULT_PATH)
+    with open(variance_file, 'w') as fp:
+        json.dump(variance, fp, cls=NumpyEncoder)
+
+    intergroup_file = str.format("{}/intergroup.json", RESULT_PATH)
+    with open(intergroup_file, 'w') as fp:
+        json.dump(intergroup_dist, fp, cls=NumpyEncoder)
 
     #test_significance(objectives_results)
     save_cc_approvals(cc_approvals_results)   

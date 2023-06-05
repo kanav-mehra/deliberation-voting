@@ -16,9 +16,9 @@ for metric in metrics:
     plt.figure(figsize=(50,30))
     ax = plt.gca()
     xticks = np.arange(len(rules))
-    ax.set_ylabel(metric)
-    ax.set_xlabel('Voting Rule')
-    ax.set_xticks(xticks, ['AV', 'MES', 'PAV', 'CC'])
+    ax.set_ylabel(metric, fontsize=75)
+    ax.set_xlabel('Voting Rule', fontsize=75)
+    ax.set_xticks(xticks, ['AV', 'MES', 'PAV', 'CC'], fontsize=75)
     
     if metric not in ['Voter Satisfaction', 'Minority Representation', 'Majority Representation', 'Nash Welfare']:
         ax.set_ylim([0.6, 1.0])
@@ -38,6 +38,8 @@ for metric in metrics:
         else:
             ax.bar(xticks+offset, list(df[metric]), width=width/len(gd), label=gd_names[i], edgecolor='black')
 
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.12), ncol=4, prop={'size': 48})
+    leg = ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=4, prop={'size': 48})
+    for i in range(7):
+        leg.get_texts()[i].set_fontsize(75)
     plt.tight_layout(pad=1.0)
     plt.savefig(str.format("{}/charts/nC{}_nW{}_nV{}_nS{}_{}.png", RESULT_PATH, num_alternatives, num_winners, num_agents, num_simulations, metric))
